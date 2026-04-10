@@ -2,18 +2,29 @@ services:
   frontend:
     build: ./hyper-city-frontend
     container_name: hypercity-frontend
-    ports:
-      - "32345:3000"
-    environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://backend:10000
+    expose:
+      - "3000"
     networks:
       - public
 
   backend:
     build: ./hyper-city-backend
     container_name: hypercity-backend
+    expose:
+      - "10000"
+    networks:
+      - public
+
+  proxy:
+    image: nginx:alpine
+    container_name: hypercity-proxy
     ports:
-      - "52345:10000"
+      - "32345:80"
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - public
 
