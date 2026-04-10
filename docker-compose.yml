@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: ./hyper-city-frontend
+    container_name: hypercity-frontend
+    ports:
+      - "3123:3000"
+    networks:
+      - public
+
+  backend:
+    build: ./hyper-city-backend
+    container_name: hypercity-backend
+    ports:
+      - "5123:5000"
+    networks:
+      - public
+
+networks:
+  public:
+    external: true
