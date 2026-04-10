@@ -25,10 +25,10 @@ const links = [
 
 export default function FooterSection() {
     return (
-        <footer className="bg-slate-950 py-16 md:py-24 text-white">
+        <footer className="border-t bg-background py-16 text-foreground md:py-24">
             <div className="mx-auto max-w-5xl px-6">
                 <Link href="/" aria-label="go home" className="mx-auto block size-fit mb-8">
-                    <span className="text-2xl font-bold text-white">Hyper City</span>
+                    <span className="text-2xl font-bold text-foreground">Hyper City</span>
                 </Link>
 
                 <div className="my-8 flex flex-wrap justify-center gap-8 text-sm">
@@ -36,7 +36,7 @@ export default function FooterSection() {
                         <Link
                             key={index}
                             href={link.href}
-                            className="text-slate-300 hover:text-white block duration-150 transition">
+                            className="text-muted-foreground hover:text-foreground block duration-150 transition">
                             <span>{link.title}</span>
                         </Link>
                     ))}
@@ -47,7 +47,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="X/Twitter"
-                        className="text-slate-300 hover:text-white block transition">
+                        className="text-muted-foreground hover:text-foreground block transition">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +64,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="LinkedIn"
-                        className="text-slate-300 hover:text-white block transition">
+                        className="text-muted-foreground hover:text-foreground block transition">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +81,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Facebook"
-                        className="text-slate-300 hover:text-white block transition">
+                        className="text-muted-foreground hover:text-foreground block transition">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +98,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Instagram"
-                        className="text-slate-300 hover:text-white block transition">
+                        className="text-muted-foreground hover:text-foreground block transition">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,7 @@ export default function FooterSection() {
                         </svg>
                     </Link>
                 </div>
-                <span className="text-slate-400 block text-center text-sm"> © {new Date().getFullYear()} Hyper City, All rights reserved</span>
+                <span className="text-muted-foreground block text-center text-sm"> © {new Date().getFullYear()} Hyper City, All rights reserved</span>
             </div>
         </footer>
     );

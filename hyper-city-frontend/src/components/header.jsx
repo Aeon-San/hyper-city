@@ -103,18 +103,20 @@ export const HeroHeader = () => {
                                 </ul>
                             </div>
                             <div
-                                className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                                <Button asChild variant="outline" size="sm">
+                                className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end md:w-fit">
+                                <Button asChild variant="outline" size="sm" className="h-9 px-4">
                                     <Link href="#">
                                         <span>Login</span>
                                     </Link>
                                 </Button>
-                                <Button asChild size="sm">
+                                <Button asChild size="sm" className="h-9 px-4">
                                     <Link href="#">
                                         <span>Sign Up</span>
                                     </Link>
                                 </Button>
-                                <ThemeToggleButton />
+                                <div className="flex items-center justify-start sm:justify-center">
+                                    <ThemeToggleButton />
+                                </div>
                             </div>
                         </div>
                     </motion.div>
