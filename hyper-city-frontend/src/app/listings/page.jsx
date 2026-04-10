@@ -46,7 +46,7 @@ export default function ListingsPage() {
         params.set("category", selectedCategory)
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/services/listings?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/services/listings?${params.toString()}`);
       const payload = await response.json();
 
       if (!response.ok || payload.success === false) {

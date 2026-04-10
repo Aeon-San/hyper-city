@@ -970,7 +970,7 @@ export default function VerifiedProvidersPage() {
         params.set('category', selectedCategory)
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/services/listings?${params.toString()}`)
+      const response = await fetch(`${API_BASE_URL}/services/listings?${params.toString()}`)
       const payload = await response.json()
 
       if (!response.ok || payload.success === false) {
@@ -1028,7 +1028,7 @@ export default function VerifiedProvidersPage() {
     if (!serviceId) return
     setReviewLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reviews/${serviceId}?limit=10`)
+      const response = await fetch(`${API_BASE_URL}/reviews/${serviceId}?limit=10`)
       const payload = await response.json()
       if (!response.ok || payload.success === false) {
         throw new Error(payload.message || 'Unable to load reviews')
@@ -1063,7 +1063,7 @@ export default function VerifiedProvidersPage() {
       setReviewLoading(true)
       setReviewError('')
 
-      const response = await fetch(`${API_BASE_URL}/api/reviews`, {
+      const response = await fetch(`${API_BASE_URL}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

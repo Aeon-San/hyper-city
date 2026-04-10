@@ -38,7 +38,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -69,7 +69,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+          const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -100,7 +100,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+          const response = await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
             credentials: 'include',
           })
@@ -123,7 +123,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          const response = await fetch(`${API_BASE_URL}/auth/me`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

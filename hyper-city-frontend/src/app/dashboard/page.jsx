@@ -377,7 +377,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     try {
       const searchParam = vendorQuery.trim() ? `&search=${encodeURIComponent(vendorQuery.trim())}` : ''
       const response = await fetch(
-        `${API_BASE_URL}/api/auth/vendors?page=${vendorPage}&limit=${vendorMeta.limit}${searchParam}`,
+        `${API_BASE_URL}/auth/vendors?page=${vendorPage}&limit=${vendorMeta.limit}${searchParam}`,
         {
           credentials: 'include',
         }
@@ -404,7 +404,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     try {
       const searchParam = serviceQuery.trim() ? `&search=${encodeURIComponent(serviceQuery.trim())}` : ''
       // Admins see all services via /admin endpoint, vendors see only their services via /vendor
-      const endpoint = currentRole === 'admin' ? '/api/services/admin' : '/api/services/vendor'
+      const endpoint = currentRole === 'admin' ? '/services/admin' : '/services/vendor'
       const headers = currentRole === 'admin' && authToken ? { Authorization: `Bearer ${authToken}` } : {}
       console.log('DEBUG fetchServices:', { currentRole, endpoint, authToken: !!authToken })
       const response = await fetch(
@@ -433,7 +433,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
   const fetchCategoryList = useCallback(async () => {
     setCategoryLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/categories?country=India`)
+      const response = await fetch(`${API_BASE_URL}/categories?country=India`)
       const payload = await response.json()
       if (!response.ok || payload.success === false) {
         throw new Error(payload.message || 'Unable to load categories')
@@ -450,7 +450,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setAdminCategoryLoading(true)
     try {
       const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
-      const response = await fetch(`${API_BASE_URL}/api/categories?country=India&includePending=true`, {
+      const response = await fetch(`${API_BASE_URL}/categories?country=India&includePending=true`, {
         credentials: 'include',
         headers,
       })
@@ -468,7 +468,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     try {
       const searchParam = pendingQuery.trim() ? `&search=${encodeURIComponent(pendingQuery.trim())}` : ''
       const response = await fetch(
-        `${API_BASE_URL}/api/services/pending?page=${pendingPage}&limit=${pendingMeta.limit}${searchParam}&country=India`,
+        `${API_BASE_URL}/services/pending?page=${pendingPage}&limit=${pendingMeta.limit}${searchParam}&country=India`,
         {
           credentials: 'include',
         }
@@ -582,7 +582,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleVendorUpdate = async (vendorId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/vendors/${vendorId}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/vendors/${vendorId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -606,7 +606,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/vendors/${vendorId}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/vendors/${vendorId}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -655,7 +655,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleServiceUpdate = async (serviceId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/services/${serviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -689,7 +689,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
     setServiceCreateLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/services`, {
+      const response = await fetch(`${API_BASE_URL}/services`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -797,7 +797,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setVendorCreateLoading(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/vendors`, {
+      const response = await fetch(`${API_BASE_URL}/auth/vendors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -839,7 +839,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setCategoryActionLoading(true)
     try {
       const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
-      const response = await fetch(`${API_BASE_URL}/api/categories`, {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
         method: 'POST',
         headers,
         credentials: 'include',
@@ -883,7 +883,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setCategoryActionLoading(true)
     try {
       const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
-      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryEditId}`, {
+      const response = await fetch(`${API_BASE_URL}/categories/${categoryEditId}`, {
         method: 'PATCH',
         headers,
         credentials: 'include',
@@ -905,7 +905,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setCategoryActionLoading(true)
     try {
       const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
-      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+      const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
         method: 'PATCH',
         headers,
         credentials: 'include',
@@ -926,7 +926,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setCategoryActionLoading(true)
     try {
       const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
-      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+      const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
         method: 'PATCH',
         headers,
         credentials: 'include',
@@ -950,7 +950,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
     try {
       const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
-      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+      const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers,
@@ -974,7 +974,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
     setCategoryActionLoading(true)
     try {
       const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
-      const response = await fetch(`${API_BASE_URL}/api/categories`, {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
         method: 'POST',
         headers,
         credentials: 'include',
@@ -1000,7 +1000,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleServiceApproval = async (serviceId, approved) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/services/${serviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
