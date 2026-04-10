@@ -2,6 +2,8 @@ FROM node:20-alpine AS base
 
 WORKDIR /app
 
+ENV NEXT_PUBLIC_API_BASE_URL=http://backend:10000
+
 COPY package*.json ./
 RUN npm install
 

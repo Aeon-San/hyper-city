@@ -4,6 +4,8 @@ services:
     container_name: hypercity-frontend
     ports:
       - "32345:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:10000
     networks:
       - public
 
