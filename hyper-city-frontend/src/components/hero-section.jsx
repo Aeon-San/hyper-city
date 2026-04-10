@@ -41,7 +41,7 @@ export default function HeroSection() {
     <>
       <HeroHeader />
       <main className="overflow-x-hidden">
-        <section ref={sectionRef} className="bg-gradient-to-br from-blue-300 via-blue-200 to-sky-100 min-h-screen">
+        <section ref={sectionRef} className="bg-linear-to-br from-blue-300 via-blue-200 to-sky-100 min-h-screen">
           <div className="relative flex flex-col xl:h-screen justify-center z-10 xl:gap-0 gap-12 overflow-hidden">
             {/* Animated Clouds */}
             <motion.div
@@ -76,7 +76,7 @@ export default function HeroSection() {
               >
                 <p className="text-sm font-semibold text-slate-600 mb-2">Ghar Baithe Services</p>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-                  Find Local<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">Services</span><br />Near You
+                  Find Local<br /><span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-blue-400">Services</span><br />Near You
                 </h1>
                 <p className="text-lg text-slate-700 max-w-xl mb-8">Discover electricians, tutors, cafes, repair technicians and local businesses instantly with GPS-powered search.</p>
                 <motion.div 
@@ -99,17 +99,17 @@ export default function HeroSection() {
               >
                 <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
                   {/* Gradient overlay for modern look */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-40 z-10"></div>
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 opacity-40 z-10"></div>
                   
                   {/* 3D-style container */}
-                  <div className="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
+                  <div className="w-full h-full bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
                     {/* Animated gradient background */}
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                       className="absolute inset-0 opacity-30"
                     >
-                      <div className="w-full h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                      <div className="w-full h-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500"></div>
                     </motion.div>
 
                     {/* Modern architecture SVG representation */}
@@ -170,7 +170,7 @@ export default function HeroSection() {
                     >
                       {item.icon ? (
                         <>
-                          <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full">
+                          <div className="p-3 bg-linear-to-br from-blue-400 to-blue-600 rounded-full">
                             <item.icon size={32} className="text-white" />
                           </div>
                           <div>
@@ -179,7 +179,7 @@ export default function HeroSection() {
                         </>
                       ) : (
                         <>
-                          <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{item.count}</p>
+                          <p className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{item.count}</p>
                           <p className="text-sm font-semibold text-slate-600">{item.label}</p>
                         </>
                       )}

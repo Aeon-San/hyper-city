@@ -39,6 +39,7 @@ const Toaster = ({
         }
       }
       toastOptions={{
+        duration: 600,
         classNames: {
           toast: "cn-toast",
         },

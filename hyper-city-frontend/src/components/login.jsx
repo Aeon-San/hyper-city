@@ -1,11 +1,44 @@
+'use client'
+
 import { LogoIcon } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ThemeToggleButton } from '@/components/theme-toggle-button'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useAuthStore } from '@/store/use-auth-store'
 
 export default function LoginPage() {
+    const router = useRouter()
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+
+    const login = useAuthStore((state) => state.login)
+    const clearError = useAuthStore((state) => state.clearError)
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+    const isLoading = useAuthStore((state) => state.isLoading)
+    const error = useAuthStore((state) => state.error)
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push('/dashboard')
+        }
+    }, [isAuthenticated, router])
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        clearError()
+
+        try {
+            await login({ email, password })
+            router.push('/dashboard')
+        } catch {
+            // store already captures the error
+        }
+    }
+
     return (
         <section
             className="relative flex min-h-screen items-center justify-center px-4 py-16 md:py-32"
@@ -31,7 +64,7 @@ export default function LoginPage() {
                 </div>
             </nav>
             <form
-                action=""
+                onSubmit={handleSubmit}
                 className="bg-muted relative z-10 m-auto h-fit w-full max-w-sm overflow-hidden rounded-[calc(var(--radius)+.125rem)] border shadow-md shadow-zinc-950/5 dark:[--color-muted:var(--color-zinc-900)]">
                 <div
                     className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
@@ -48,7 +81,14 @@ export default function LoginPage() {
                             <Label htmlFor="email" className="block text-sm">
                                 Email
                             </Label>
-                            <Input type="email" required name="email" id="email" />
+                            <Input
+                                type="email"
+                                required
+                                name="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
 
                         <div className="space-y-0.5">
@@ -67,10 +107,16 @@ export default function LoginPage() {
                                 required
                                 name="pwd"
                                 id="pwd"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="input sz-md variant-mixed" />
                         </div>
 
-                        <Button className="w-full">Sign In</Button>
+                        {error && <p className="text-sm text-destructive">{error}</p>}
+
+                        <Button className="w-full" type="submit" disabled={isLoading}>
+                            {isLoading ? 'Signing In...' : 'Sign In'}
+                        </Button>
                     </div>
 
                 </div>

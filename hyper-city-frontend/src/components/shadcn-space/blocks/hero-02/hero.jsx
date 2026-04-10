@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +15,21 @@ import { motion, useInView } from "motion/react";
 const propertyFeatures = [
   {
     icon: MapPin,
-    label: "GPS Discovery",
+    label: "Nearby Services",
     className: "border-e border-b",
-    href: "#features",
+    href: "/nearby",
   },
   {
     icon: Search,
     label: "Smart Search",
     className: "border-b",
     href: "#features",
+  },
+  {
+    icon: MapPin,
+    label: "Local Listings",
+    className: "border-b",
+    href: "/listings",
   },
   {
     icon: Users,
@@ -48,55 +55,42 @@ const categoryItems = [
 
 const dummyServicesByCategory = {
   Repairs: [
-    { _id: "rep-1", name: "QuickFix Electric", area: "Sector 12", city: "Your City", distanceMeters: 320, distanceKm: 0.32 },
-    { _id: "rep-2", name: "City Repair Hub", area: "Main Road", city: "Your City", distanceMeters: 780, distanceKm: 0.78 },
-    { _id: "rep-3", name: "HandyPro Services", area: "Green Park", city: "Your City", distanceMeters: 1150, distanceKm: 1.15 },
+    { _id: "rep-1", name: "QuickFix Electric", vendorName: "Amit Electrics", area: "Sector 12", city: "Your City", distanceMeters: 320, distanceKm: 0.32 },
+    { _id: "rep-2", name: "City Repair Hub", vendorName: "Ravi Repair Co.", area: "Main Road", city: "Your City", distanceMeters: 780, distanceKm: 0.78 },
+    { _id: "rep-3", name: "HandyPro Services", vendorName: "SmartFix Crew", area: "Green Park", city: "Your City", distanceMeters: 1150, distanceKm: 1.15 },
   ],
   Tutors: [
-    { _id: "tut-1", name: "Bright Minds Academy", area: "Lake View", city: "Your City", distanceMeters: 450, distanceKm: 0.45 },
-    { _id: "tut-2", name: "Math Mentor Point", area: "Sector 8", city: "Your City", distanceMeters: 900, distanceKm: 0.9 },
-    { _id: "tut-3", name: "Home Tutor Connect", area: "Civil Lines", city: "Your City", distanceMeters: 1400, distanceKm: 1.4 },
+    { _id: "tut-1", name: "Bright Minds Academy", vendorName: "Priya Tutors", area: "Lake View", city: "Your City", distanceMeters: 450, distanceKm: 0.45 },
+    { _id: "tut-2", name: "Math Mentor Point", vendorName: "Rohan Classes", area: "Sector 8", city: "Your City", distanceMeters: 900, distanceKm: 0.9 },
+    { _id: "tut-3", name: "Home Tutor Connect", vendorName: "StudyBuddy", area: "Civil Lines", city: "Your City", distanceMeters: 1400, distanceKm: 1.4 },
   ],
   Food: [
-    { _id: "food-1", name: "Street Bites Corner", area: "City Center", city: "Your City", distanceMeters: 280, distanceKm: 0.28 },
-    { _id: "food-2", name: "Cafe Midtown", area: "MG Road", city: "Your City", distanceMeters: 670, distanceKm: 0.67 },
-    { _id: "food-3", name: "Tandoori Treats", area: "Old Market", city: "Your City", distanceMeters: 1320, distanceKm: 1.32 },
+    { _id: "food-1", name: "Street Bites Corner", vendorName: "SpiceHouse", area: "City Center", city: "Your City", distanceMeters: 280, distanceKm: 0.28 },
+    { _id: "food-2", name: "Cafe Midtown", vendorName: "Brew Crew", area: "MG Road", city: "Your City", distanceMeters: 670, distanceKm: 0.67 },
+    { _id: "food-3", name: "Tandoori Treats", vendorName: "Nawab Kitchen", area: "Old Market", city: "Your City", distanceMeters: 1320, distanceKm: 1.32 },
   ],
   Business: [
-    { _id: "biz-1", name: "City Tax Consultants", area: "Business Bay", city: "Your City", distanceMeters: 510, distanceKm: 0.51 },
-    { _id: "biz-2", name: "Legal Link Office", area: "Court Lane", city: "Your City", distanceMeters: 990, distanceKm: 0.99 },
-    { _id: "biz-3", name: "BrandCraft Studio", area: "Tech Park", city: "Your City", distanceMeters: 1650, distanceKm: 1.65 },
+    { _id: "biz-1", name: "City Tax Consultants", vendorName: "LedgerCare", area: "Business Bay", city: "Your City", distanceMeters: 510, distanceKm: 0.51 },
+    { _id: "biz-2", name: "Legal Link Office", vendorName: "LegalEase", area: "Court Lane", city: "Your City", distanceMeters: 990, distanceKm: 0.99 },
+    { _id: "biz-3", name: "BrandCraft Studio", vendorName: "CreativePoint", area: "Tech Park", city: "Your City", distanceMeters: 1650, distanceKm: 1.65 },
   ],
   Trusted: [
-    { _id: "trust-1", name: "Verified Home Care", area: "Sector 4", city: "Your City", distanceMeters: 360, distanceKm: 0.36 },
-    { _id: "trust-2", name: "Prime Local Experts", area: "Railway Colony", city: "Your City", distanceMeters: 840, distanceKm: 0.84 },
-    { _id: "trust-3", name: "SafeServe Network", area: "Airport Road", city: "Your City", distanceMeters: 1720, distanceKm: 1.72 },
+    { _id: "trust-1", name: "Verified Home Care", vendorName: "CareFirst", area: "Sector 4", city: "Your City", distanceMeters: 360, distanceKm: 0.36 },
+    { _id: "trust-2", name: "Prime Local Experts", vendorName: "ProAssist", area: "Railway Colony", city: "Your City", distanceMeters: 840, distanceKm: 0.84 },
+    { _id: "trust-3", name: "SafeServe Network", vendorName: "SafeHands", area: "Airport Road", city: "Your City", distanceMeters: 1720, distanceKm: 1.72 },
   ],
 };
 
 const HeroSection = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
-  const [coords, setCoords] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(categoryItems[0].label);
-  const [nearbyServices, setNearbyServices] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [nearbyError, setNearbyError] = useState("");
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const apiBaseUrl = useMemo(
-    () => (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, ""),
-    []
-  );
-
   const displayedServices = useMemo(() => {
-    if (nearbyServices.length > 0) {
-      return nearbyServices;
-    }
-
     return dummyServicesByCategory[selectedCategory] || [];
-  }, [nearbyServices, selectedCategory]);
+  }, [selectedCategory]);
 
   const selectedCategoryDistance = useMemo(() => {
     const firstService = displayedServices[0];
@@ -106,61 +100,6 @@ const HeroSection = () => {
 
     return `${Math.round(firstService.distanceMeters || 0)} m / ${firstService.distanceKm || 0} km`;
   }, [displayedServices]);
-
-  useEffect(() => {
-    if (!("geolocation" in navigator)) {
-      setNearbyError("Geolocation is not supported in this browser.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords: geo }) => {
-        setCoords({ lat: geo.latitude, lng: geo.longitude });
-        setNearbyError("");
-      },
-      () => {
-        setNearbyError("Enable location access to see near-me services.");
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }, []);
-
-  useEffect(() => {
-    const fetchNearbyServices = async () => {
-      if (!coords || !selectedCategory) {
-        return;
-      }
-
-      setIsLoading(true);
-      setNearbyError("");
-
-      try {
-        const params = new URLSearchParams({
-          lat: String(coords.lat),
-          lng: String(coords.lng),
-          category: selectedCategory,
-          radiusKm: "10",
-          limit: "6",
-        });
-
-        const response = await fetch(`${apiBaseUrl}/api/services?${params.toString()}`);
-        const payload = await response.json();
-
-        if (!response.ok || !payload.success) {
-          throw new Error(payload.message || "Unable to fetch nearby services.");
-        }
-
-        setNearbyServices(Array.isArray(payload.data) ? payload.data : []);
-      } catch (error) {
-        setNearbyServices([]);
-        setNearbyError(error.message || "Unable to fetch nearby services.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNearbyServices();
-  }, [coords, selectedCategory, apiBaseUrl]);
 
   return (
     <section ref={sectionRef}>
@@ -176,7 +115,7 @@ const HeroSection = () => {
             <div>
               <Button
                 className="px-6 py-3.5 bg-white border-0 text-black duration-300 hover:bg-white/80 font-medium rounded-full hover:cursor-pointer h-auto">
-                <a href="#features">Explore Services</a>
+                <Link href="/nearby">Explore Services</Link>
               </Button>
             </div>
           </div>
@@ -185,13 +124,12 @@ const HeroSection = () => {
           className="xl:absolute xl:-bottom-17.5 right-0 z-30 xl:w-full xl:max-w-6xl lg:w-4/5 w-full lg:ms-auto">
           <div className="relative">
             <div className="xl:absolute bottom-24 w-full z-0 xl:max-w-240 xl:right-0">
-              <img
-                src={
-                  "https://images.shadcnspace.com/assets/backgrounds/hero-4-banner.webp"
-                }
-                alt="heroImg"
+              <Image
+                src="https://images.shadcnspace.com/assets/backgrounds/hero-4-banner.webp"
+                alt="hero banner"
                 width={956}
                 height={897}
+                unoptimized
                 className="w-full h-auto object-contain xl:ms-auto" />
             </div>
             <div
@@ -287,13 +225,8 @@ const HeroSection = () => {
                     </button>
                   ))}
                 </Marquee>
-                {isLoading && (
-                  <p className="mt-2 px-2 text-xs text-muted-foreground">Loading nearby distance...</p>
-                )}
-                {!isLoading && nearbyError && displayedServices.length > 0 && (
-                  <p className="mt-2 px-2 text-xs text-muted-foreground">Using demo distance data.</p>
-                )}
               </motion.div>
+
             </div>
           </div>
         </div>

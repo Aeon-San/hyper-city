@@ -6,6 +6,7 @@ import { ThemeToggleButton } from '@/components/theme-toggle-button'
 import React from 'react'
 import { useScroll, motion } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/use-auth-store'
 
 const menuItems = [
     { name: 'Features', href: '#features' },
@@ -18,6 +19,10 @@ export const HeroHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
     const [scrolled, setScrolled] = React.useState(false)
     const { scrollYProgress } = useScroll()
+    const user = useAuthStore((state) => state.user)
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+    const hasHydrated = useAuthStore((state) => state.hasHydrated)
+    const logout = useAuthStore((state) => state.logout)
 
     React.useEffect(() => {
         const unsubscribe = scrollYProgress.on('change', (latest) => {
@@ -104,16 +109,33 @@ export const HeroHeader = () => {
                             </div>
                             <div
                                 className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end md:w-fit">
-                                <Button asChild variant="outline" size="sm" className="h-9 px-4">
-                                    <Link href="/login">
-                                        <span>Login</span>
-                                    </Link>
-                                </Button>
-                                <Button asChild size="sm" className="h-9 px-4">
-                                    <Link href="/signup">
-                                        <span>Sign Up</span>
-                                    </Link>
-                                </Button>
+                                {hasHydrated && isAuthenticated ? (
+                                    <>
+                                        <span className="text-sm font-medium text-foreground/90 sm:px-1">
+                                            {user?.name || 'User'}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-9 px-4"
+                                            onClick={logout}>
+                                            <span>Logout</span>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button asChild variant="outline" size="sm" className="h-9 px-4">
+                                            <Link href="/login">
+                                                <span>Login</span>
+                                            </Link>
+                                        </Button>
+                                        <Button asChild size="sm" className="h-9 px-4">
+                                            <Link href="/signup">
+                                                <span>Sign Up</span>
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                                 <div className="flex items-center justify-start sm:justify-center">
                                     <ThemeToggleButton />
                                 </div>
