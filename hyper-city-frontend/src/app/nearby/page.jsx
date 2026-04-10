@@ -17,46 +17,69 @@ const categoryItems = [
 
 const dummyServicesByCategory = {
   Repairs: [
-    { _id: "rep-1", name: "QuickFix Electric", vendorName: "Amit Electrics", category: "Repairs", area: "Sector 12", city: "Your City", distanceKm: 0.32 },
-    { _id: "rep-2", name: "City Repair Hub", vendorName: "Ravi Repair Co.", category: "Repairs", area: "Main Road", city: "Your City", distanceKm: 0.78 },
-    { _id: "rep-3", name: "HandyPro Services", vendorName: "SmartFix Crew", category: "Repairs", area: "Green Park", city: "Your City", distanceKm: 1.15 },
+    { _id: "rep-1", name: "QuickFix Electric", vendorName: "Amit Electrics", category: "Repairs", area: "Sector 12", city: "Delhi", distanceKm: 0.32 },
+    { _id: "rep-2", name: "City Repair Hub", vendorName: "Ravi Repair Co.", category: "Repairs", area: "Main Road", city: "Delhi", distanceKm: 0.78 },
+    { _id: "rep-3", name: "HandyPro Services", vendorName: "SmartFix Crew", category: "Repairs", area: "Green Park", city: "Delhi", distanceKm: 1.15 },
+    { _id: "rep-4", name: "TechFix Center", vendorName: "Expert Tech", category: "Repairs", area: "Connaught Place", city: "Mumbai", distanceKm: 0.45 },
+    { _id: "rep-5", name: "Pro Repair Solutions", vendorName: "Repair Masters", category: "Repairs", area: "Marina Bay", city: "Mumbai", distanceKm: 0.89 },
+    { _id: "rep-6", name: "Quick Service Hub", vendorName: "Service Pro", category: "Repairs", area: "MG Road", city: "Bangalore", distanceKm: 0.56 },
+    { _id: "rep-7", name: "Expert Repairs", vendorName: "Repair Experts", category: "Repairs", area: "Koramangala", city: "Bangalore", distanceKm: 1.23 },
   ],
   Tutors: [
-    { _id: "tut-1", name: "Bright Minds Academy", vendorName: "Priya Tutors", category: "Tutors", area: "Lake View", city: "Your City", distanceKm: 0.45 },
-    { _id: "tut-2", name: "Math Mentor Point", vendorName: "Rohan Classes", category: "Tutors", area: "Sector 8", city: "Your City", distanceKm: 0.9 },
-    { _id: "tut-3", name: "Home Tutor Connect", vendorName: "StudyBuddy", category: "Tutors", area: "Civil Lines", city: "Your City", distanceKm: 1.4 },
+    { _id: "tut-1", name: "Bright Minds Academy", vendorName: "Priya Tutors", category: "Tutors", area: "Lake View", city: "Delhi", distanceKm: 0.45 },
+    { _id: "tut-2", name: "Math Mentor Point", vendorName: "Rohan Classes", category: "Tutors", area: "Sector 8", city: "Delhi", distanceKm: 0.9 },
+    { _id: "tut-3", name: "Home Tutor Connect", vendorName: "StudyBuddy", category: "Tutors", area: "Civil Lines", city: "Delhi", distanceKm: 1.4 },
+    { _id: "tut-4", name: "Excellence Coaching", vendorName: "Coach Arjun", category: "Tutors", area: "Fort", city: "Mumbai", distanceKm: 0.62 },
+    { _id: "tut-5", name: "Smart Study Center", vendorName: "Study Masters", category: "Tutors", area: "Bandra", city: "Mumbai", distanceKm: 1.15 },
+    { _id: "tut-6", name: "Scholar Academy", vendorName: "Prof Kumar", category: "Tutors", area: "Whitefield", city: "Bangalore", distanceKm: 0.78 },
+    { _id: "tut-7", name: "Learning Hub", vendorName: "Tutor Priya", category: "Tutors", area: "Indiranagar", city: "Bangalore", distanceKm: 1.05 },
   ],
   Food: [
-    { _id: "food-1", name: "Street Bites Corner", vendorName: "SpiceHouse", category: "Food", area: "City Center", city: "Your City", distanceKm: 0.28 },
-    { _id: "food-2", name: "Cafe Midtown", vendorName: "Brew Crew", category: "Food", area: "MG Road", city: "Your City", distanceKm: 0.67 },
-    { _id: "food-3", name: "Tandoori Treats", vendorName: "Nawab Kitchen", category: "Food", area: "Old Market", city: "Your City", distanceKm: 1.32 },
+    { _id: "food-1", name: "Street Bites Corner", vendorName: "SpiceHouse", category: "Food", area: "City Center", city: "Delhi", distanceKm: 0.28 },
+    { _id: "food-2", name: "Cafe Midtown", vendorName: "Brew Crew", category: "Food", area: "MG Road", city: "Delhi", distanceKm: 0.67 },
+    { _id: "food-3", name: "Tandoori Treats", vendorName: "Nawab Kitchen", category: "Food", area: "Old Market", city: "Delhi", distanceKm: 1.32 },
+    { _id: "food-4", name: "Island Café", vendorName: "Island Foods", category: "Food", area: "South Bombay", city: "Mumbai", distanceKm: 0.41 },
+    { _id: "food-5", name: "Sea View Restaurant", vendorName: "Ocean Dining", category: "Food", area: "Gateway", city: "Mumbai", distanceKm: 0.93 },
+    { _id: "food-6", name: "Garden Bistro", vendorName: "Farm Fresh", category: "Food", area: "Cubbon Park", city: "Bangalore", distanceKm: 0.38 },
+    { _id: "food-7", name: "Tech Park Café", vendorName: "Café Delight", category: "Food", area: "Electronic City", city: "Bangalore", distanceKm: 1.12 },
+    { _id: "food-8", name: "Flavor Heaven", vendorName: "Master Chefs", category: "Food", area: "Bangalore Fort", city: "Bangalore", distanceKm: 0.75 },
   ],
   Business: [
-    { _id: "biz-1", name: "City Tax Consultants", vendorName: "LedgerCare", category: "Business", area: "Business Bay", city: "Your City", distanceKm: 0.51 },
-    { _id: "biz-2", name: "Legal Link Office", vendorName: "LegalEase", category: "Business", area: "Court Lane", city: "Your City", distanceKm: 0.99 },
-    { _id: "biz-3", name: "BrandCraft Studio", vendorName: "CreativePoint", category: "Business", area: "Tech Park", city: "Your City", distanceKm: 1.65 },
+    { _id: "biz-1", name: "City Tax Consultants", vendorName: "LedgerCare", category: "Business", area: "Business Bay", city: "Delhi", distanceKm: 0.51 },
+    { _id: "biz-2", name: "Legal Link Office", vendorName: "LegalEase", category: "Business", area: "Court Lane", city: "Delhi", distanceKm: 0.99 },
+    { _id: "biz-3", name: "BrandCraft Studio", vendorName: "CreativePoint", category: "Business", area: "Tech Park", city: "Delhi", distanceKm: 1.65 },
+    { _id: "biz-4", name: "Corporate Solutions", vendorName: "Biz Pro", category: "Business", area: "BKCI", city: "Mumbai", distanceKm: 0.58 },
+    { _id: "biz-5", name: "Finance Advisors", vendorName: "Money Wise", category: "Business", area: "Worli", city: "Mumbai", distanceKm: 1.02 },
+    { _id: "biz-6", name: "Tech Business Hub", vendorName: "Innovation Co", category: "Business", area: "Marathahalli", city: "Bangalore", distanceKm: 0.67 },
   ],
   Trusted: [
-    { _id: "trust-1", name: "Verified Home Care", vendorName: "CareFirst", category: "Trusted", area: "Sector 4", city: "Your City", distanceKm: 0.36 },
-    { _id: "trust-2", name: "Prime Local Experts", vendorName: "ProAssist", category: "Trusted", area: "Railway Colony", city: "Your City", distanceKm: 0.84 },
-    { _id: "trust-3", name: "SafeServe Network", vendorName: "SafeHands", category: "Trusted", area: "Airport Road", city: "Your City", distanceKm: 1.72 },
+    { _id: "trust-1", name: "Verified Home Care", vendorName: "CareFirst", category: "Trusted", area: "Sector 4", city: "Delhi", distanceKm: 0.36 },
+    { _id: "trust-2", name: "Prime Local Experts", vendorName: "ProAssist", category: "Trusted", area: "Railway Colony", city: "Delhi", distanceKm: 0.84 },
+    { _id: "trust-3", name: "SafeServe Network", vendorName: "SafeHands", category: "Trusted", area: "Airport Road", city: "Delhi", distanceKm: 1.72 },
+    { _id: "trust-4", name: "Trust Care Services", vendorName: "Care Expert", category: "Trusted", area: "Powai", city: "Mumbai", distanceKm: 0.52 },
+    { _id: "trust-5", name: "Safe Hands Mumbai", vendorName: "Safety Plus", category: "Trusted", area: "Andheri", city: "Mumbai", distanceKm: 1.18 },
+    { _id: "trust-6", name: "Bangalore Care Plus", vendorName: "Care Solutions", category: "Trusted", area: "Malleswaram", city: "Bangalore", distanceKm: 0.64 },
+    { _id: "trust-7", name: "City Trusted Services", vendorName: "Service Guard", category: "Trusted", area: "Domlur", city: "Bangalore", distanceKm: 0.92 },
   ],
 }
 
 export default function NearbyPage() {
   const [selectedCategory, setSelectedCategory] = useState("Repairs")
+  const [selectedCity, setSelectedCity] = useState("Delhi")
   const [coords, setCoords] = useState(null)
   const [services, setServices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [locationRequired, setLocationRequired] = useState(true)
 
+  const cities = ["Delhi", "Mumbai", "Bangalore"]
+
   const displayedServices = useMemo(() => {
-    if (!coords) {
+    if (!selectedCity) {
       return []
     }
-    return services
-  }, [coords, services])
+    return services.filter((service) => service.city === selectedCity)
+  }, [selectedCity, services])
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -85,39 +108,14 @@ export default function NearbyPage() {
   }, [])
 
   useEffect(() => {
-    const fetchNearby = async () => {
-      if (!coords) return
-
-      setIsLoading(true)
-      setError("")
-
-      try {
-        const params = new URLSearchParams({
-          lat: String(coords.lat),
-          lng: String(coords.lng),
-          category: selectedCategory,
-          radiusKm: "10",
-          limit: "20",
-        })
-
-        const response = await fetch(`${API_BASE_URL}/api/services/nearby?${params.toString()}`)
-        const payload = await response.json()
-
-        if (!response.ok || payload.success === false) {
-          throw new Error(payload.message || "Unable to fetch nearby services.")
-        }
-
-        setServices(Array.isArray(payload.data) ? payload.data : [])
-      } catch (err) {
-        setError(err.message || "Unable to fetch nearby services.")
-        setServices([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchNearby()
-  }, [coords, selectedCategory])
+    setIsLoading(true)
+    // Simulate loading delay
+    setTimeout(() => {
+      const categoryServices = dummyServicesByCategory[selectedCategory] || []
+      setServices(categoryServices)
+      setIsLoading(false)
+    }, 300)
+  }, [selectedCategory])
 
   return (
     <main className="min-h-screen w-full bg-background px-4 py-10 text-foreground md:px-6 lg:px-10">
@@ -150,6 +148,25 @@ export default function NearbyPage() {
               {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
             </div>
             <div className="rounded-3xl border border-border/70 bg-card p-4">
+              <p className="text-sm font-semibold">Select City</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {cities.map((city) => (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => setSelectedCity(city)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      selectedCity === city
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground hover:bg-muted/80"
+                    }`}>
+                    <MapPin className="mr-2 inline-block h-4 w-4" />
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-3xl border border-border/70 bg-card p-4">
               <p className="text-sm font-semibold">Categories</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {categoryItems.map((item) => (
@@ -175,20 +192,20 @@ export default function NearbyPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] font-semibold text-muted-foreground">Nearby Services</p>
-                  <h2 className="mt-2 text-2xl font-bold">{selectedCategory} near you</h2>
+                  <h2 className="mt-2 text-2xl font-bold">{selectedCategory} in {selectedCity}</h2>
                 </div>
                 <div className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
-                  {coords ? "Live results" : "Location required"}
+                  {displayedServices.length} results
                 </div>
               </div>
-              {!coords && (
+              {displayedServices.length === 0 && !isLoading && (
                 <div className="mt-6 rounded-3xl border border-border/70 bg-slate-50 p-6 text-sm font-semibold text-slate-700">
-                  Enable location access to view nearby service listings based on your coordinates.
+                  No {selectedCategory} services found in {selectedCity}. Try selecting a different category or city.
                 </div>
               )}
             </div>
 
-            {coords && (
+            {displayedServices.length > 0 && (
               <div className="grid gap-4">
                 {(isLoading ? Array.from({ length: 3 }) : displayedServices).map((service, index) => (
                   <div
