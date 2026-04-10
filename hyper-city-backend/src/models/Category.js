@@ -25,6 +25,24 @@ const categorySchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "approved",
+            index: true,
+        },
+        requestedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+        reviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+        reviewMessage: {
+            type: String,
+            trim: true,
+        },
         isActive: {
             type: Boolean,
             default: true,

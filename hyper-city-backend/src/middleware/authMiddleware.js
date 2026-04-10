@@ -31,6 +31,26 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
+const optionalProtect = asyncHandler(async (req, res, next) => {
+    const bearer = req.headers.authorization;
+    let token = req.cookies.token;
+
+    if (!token && bearer && bearer.startsWith("Bearer ")) {
+        token = bearer.split(" ")[1];
+    }
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.userId).select("-password");
+        } catch {
+            req.user = null;
+        }
+    }
+
+    next();
+});
+
 const authorize = (...roles) => (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
         res.status(403);
@@ -40,4 +60,4 @@ const authorize = (...roles) => (req, res, next) => {
     next();
 };
 
-export { protect, authorize };
+export { protect, optionalProtect, authorize };

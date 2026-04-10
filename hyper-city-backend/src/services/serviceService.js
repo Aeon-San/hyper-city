@@ -30,7 +30,7 @@ const createServiceListing = async (payload, vendorId, userRole = "vendor") => {
         throw new Error("Invalid coordinates");
     }
 
-    const status = userRole === "admin" ? "approved" : "pending";
+    const status = ["admin", "vendor"].includes(userRole) ? "approved" : "pending";
 
     return Service.create({
         name,
@@ -170,6 +170,45 @@ const getVendorServices = async ({ vendorId, search = "", page = 1, limit = 20 }
             { category: new RegExp(keyword, "i") },
             { area: new RegExp(keyword, "i") },
             { city: new RegExp(keyword, "i") },
+        ];
+    }
+
+    const total = await Service.countDocuments(query);
+    const services = await Service.find(query)
+        .populate("vendorId", "name")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(normalizedLimit)
+        .lean();
+
+    const servicesWithVendor = services.map((service) => ({
+        ...service,
+        vendorName: service.vendorId?.name || null,
+    }));
+
+    return {
+        page: normalizedPage,
+        limit: normalizedLimit,
+        total,
+        count: servicesWithVendor.length,
+        data: servicesWithVendor,
+    };
+};
+
+const getAllServices = async ({ search = "", page = 1, limit = 20 }) => {
+    const normalizedPage = Math.max(Number(page) || 1, 1);
+    const normalizedLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+    const skip = (normalizedPage - 1) * normalizedLimit;
+
+    const query = {};
+    if (search?.trim()) {
+        const keyword = search.trim();
+        query.$or = [
+            { name: new RegExp(keyword, "i") },
+            { category: new RegExp(keyword, "i") },
+            { area: new RegExp(keyword, "i") },
+            { city: new RegExp(keyword, "i") },
+            { vendorName: new RegExp(keyword, "i") },
         ];
     }
 
@@ -354,6 +393,7 @@ export {
     discoverNearbyServices,
     discoverLocalListings,
     getVendorServices,
+    getAllServices,
     getPendingServices,
     updateServiceListing,
 };

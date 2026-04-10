@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || true,
+        origin: [process.env.CLIENT_URL || "http://172.16.26.98:3000"],
         credentials: true,
     })
 );
@@ -41,6 +41,6 @@ app.use("/api/reviews", reviewRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
 });

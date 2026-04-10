@@ -5,6 +5,7 @@ import {
     discoverNearbyServices,
     discoverLocalListings,
     getVendorServices,
+    getAllServices,
     getPendingServices,
     updateServiceListing,
 } from "../services/serviceService.js";
@@ -49,6 +50,16 @@ const getVendorServicesController = asyncHandler(async (req, res) => {
     });
 });
 
+const getAdminServicesController = asyncHandler(async (req, res) => {
+    const { search, page, limit } = req.query;
+    const result = await getAllServices({ search, page, limit });
+
+    res.status(200).json({
+        success: true,
+        ...result,
+    });
+});
+
 const updateService = asyncHandler(async (req, res) => {
     const serviceId = req.params.id;
     const service = await updateServiceListing(serviceId, req.body, req.user._id, req.user.role);
@@ -85,6 +96,7 @@ export {
     getNearbyServices,
     getLocalListings,
     getVendorServicesController,
+    getAdminServicesController,
     getPendingServiceRequests,
     updateService,
     createService,

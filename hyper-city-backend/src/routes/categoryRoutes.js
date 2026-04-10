@@ -5,12 +5,12 @@ import {
     getCategories,
     updateCategoryController,
 } from "../controllers/categoryController.js";
-import { protect, authorize } from "../middleware/authMiddleware.js";
+import { protect, optionalProtect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getCategories);
-router.post("/", protect, authorize("admin"), createCategoryController);
+router.get("/", optionalProtect, getCategories);
+router.post("/", protect, authorize("vendor", "admin"), createCategoryController);
 router.patch("/:categoryId", protect, authorize("admin"), updateCategoryController);
 router.delete("/:categoryId", protect, authorize("admin"), deleteCategoryController);
 
