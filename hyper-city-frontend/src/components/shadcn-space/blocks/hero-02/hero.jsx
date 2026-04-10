@@ -35,7 +35,7 @@ const propertyFeatures = [
     icon: Users,
     label: "Verified Providers",
     className: "border-e",
-    href: "#features",
+    href: "/verified-providers",
   },
   {
     value: "1000+",
