@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SeamlessCloud from "@/components/shadcn-space/blocks/hero-02/seamless-cloud";
 import { Marquee } from "@/components/shadcn-space/animations/marquee";
 import { BriefcaseBusiness, GraduationCap, MapPin, Search, ShieldCheck, Users, UtensilsCrossed, Wrench } from "lucide-react";
@@ -37,16 +39,128 @@ const propertyFeatures = [
 ];
 
 const categoryItems = [
-  { icon: Wrench, label: "Repairs", href: "#features" },
-  { icon: GraduationCap, label: "Tutors", href: "#features" },
-  { icon: UtensilsCrossed, label: "Food", href: "#features" },
-  { icon: BriefcaseBusiness, label: "Business", href: "#features" },
-  { icon: ShieldCheck, label: "Trusted", href: "#features" },
+  { icon: Wrench, label: "Repairs" },
+  { icon: GraduationCap, label: "Tutors" },
+  { icon: UtensilsCrossed, label: "Food" },
+  { icon: BriefcaseBusiness, label: "Business" },
+  { icon: ShieldCheck, label: "Trusted" },
 ];
+
+const dummyServicesByCategory = {
+  Repairs: [
+    { _id: "rep-1", name: "QuickFix Electric", area: "Sector 12", city: "Your City", distanceMeters: 320, distanceKm: 0.32 },
+    { _id: "rep-2", name: "City Repair Hub", area: "Main Road", city: "Your City", distanceMeters: 780, distanceKm: 0.78 },
+    { _id: "rep-3", name: "HandyPro Services", area: "Green Park", city: "Your City", distanceMeters: 1150, distanceKm: 1.15 },
+  ],
+  Tutors: [
+    { _id: "tut-1", name: "Bright Minds Academy", area: "Lake View", city: "Your City", distanceMeters: 450, distanceKm: 0.45 },
+    { _id: "tut-2", name: "Math Mentor Point", area: "Sector 8", city: "Your City", distanceMeters: 900, distanceKm: 0.9 },
+    { _id: "tut-3", name: "Home Tutor Connect", area: "Civil Lines", city: "Your City", distanceMeters: 1400, distanceKm: 1.4 },
+  ],
+  Food: [
+    { _id: "food-1", name: "Street Bites Corner", area: "City Center", city: "Your City", distanceMeters: 280, distanceKm: 0.28 },
+    { _id: "food-2", name: "Cafe Midtown", area: "MG Road", city: "Your City", distanceMeters: 670, distanceKm: 0.67 },
+    { _id: "food-3", name: "Tandoori Treats", area: "Old Market", city: "Your City", distanceMeters: 1320, distanceKm: 1.32 },
+  ],
+  Business: [
+    { _id: "biz-1", name: "City Tax Consultants", area: "Business Bay", city: "Your City", distanceMeters: 510, distanceKm: 0.51 },
+    { _id: "biz-2", name: "Legal Link Office", area: "Court Lane", city: "Your City", distanceMeters: 990, distanceKm: 0.99 },
+    { _id: "biz-3", name: "BrandCraft Studio", area: "Tech Park", city: "Your City", distanceMeters: 1650, distanceKm: 1.65 },
+  ],
+  Trusted: [
+    { _id: "trust-1", name: "Verified Home Care", area: "Sector 4", city: "Your City", distanceMeters: 360, distanceKm: 0.36 },
+    { _id: "trust-2", name: "Prime Local Experts", area: "Railway Colony", city: "Your City", distanceMeters: 840, distanceKm: 0.84 },
+    { _id: "trust-3", name: "SafeServe Network", area: "Airport Road", city: "Your City", distanceMeters: 1720, distanceKm: 1.72 },
+  ],
+};
 
 const HeroSection = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
+  const [coords, setCoords] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(categoryItems[0].label);
+  const [nearbyServices, setNearbyServices] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState("");
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+
+  const apiBaseUrl = useMemo(
+    () => (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, ""),
+    []
+  );
+
+  const displayedServices = useMemo(() => {
+    if (nearbyServices.length > 0) {
+      return nearbyServices;
+    }
+
+    return dummyServicesByCategory[selectedCategory] || [];
+  }, [nearbyServices, selectedCategory]);
+
+  const selectedCategoryDistance = useMemo(() => {
+    const firstService = displayedServices[0];
+    if (!firstService) {
+      return null;
+    }
+
+    return `${Math.round(firstService.distanceMeters || 0)} m / ${firstService.distanceKm || 0} km`;
+  }, [displayedServices]);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      setNearbyError("Geolocation is not supported in this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: geo }) => {
+        setCoords({ lat: geo.latitude, lng: geo.longitude });
+        setNearbyError("");
+      },
+      () => {
+        setNearbyError("Enable location access to see near-me services.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  useEffect(() => {
+    const fetchNearbyServices = async () => {
+      if (!coords || !selectedCategory) {
+        return;
+      }
+
+      setIsLoading(true);
+      setNearbyError("");
+
+      try {
+        const params = new URLSearchParams({
+          lat: String(coords.lat),
+          lng: String(coords.lng),
+          category: selectedCategory,
+          radiusKm: "10",
+          limit: "6",
+        });
+
+        const response = await fetch(`${apiBaseUrl}/api/services?${params.toString()}`);
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.message || "Unable to fetch nearby services.");
+        }
+
+        setNearbyServices(Array.isArray(payload.data) ? payload.data : []);
+      } catch (error) {
+        setNearbyServices([]);
+        setNearbyError(error.message || "Unable to fetch nearby services.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNearbyServices();
+  }, [coords, selectedCategory, apiBaseUrl]);
 
   return (
     <section ref={sectionRef}>
@@ -102,27 +216,37 @@ const HeroSection = () => {
                       ease: "easeInOut",
                     }}
                     className="flex sm:gap-10">
-                    <Link
-                      href={item.href}
-                      className={`flex flex-col items-center gap-3 sm:py-0 sm:px-0 py-5 px-8 sm:border-0 border-gray-200 dark:border-gray-700 w-full rounded-lg transition-colors hover:bg-muted/40 ${item.className}`}>
-                      {item.icon ? (
-                        <>
-                          <item.icon size={28} className="text-foreground font-light" />
-                          <p className="text-sm font-normal text-muted-foreground">
-                            {item.label}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="sm:text-xl text-lg font-semibold text-foreground">
-                            {item.value ?? item.price}
-                          </p>
-                          <p className="text-sm font-normal text-muted-foreground">
-                            {item.label}
-                          </p>
-                        </>
-                      )}
-                    </Link>
+                    {item.label === "Smart Search" ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearchDialogOpen(true)}
+                        className={`flex flex-col items-center gap-3 sm:py-0 sm:px-0 py-5 px-8 sm:border-0 border-gray-200 dark:border-gray-700 w-full rounded-lg text-left transition-colors hover:bg-muted/40 ${item.className}`}>
+                        <item.icon size={28} className="text-foreground font-light" />
+                        <p className="text-sm font-normal text-muted-foreground">{item.label}</p>
+                      </button>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={`flex flex-col items-center gap-3 sm:py-0 sm:px-0 py-5 px-8 sm:border-0 border-gray-200 dark:border-gray-700 w-full rounded-lg transition-colors hover:bg-muted/40 ${item.className}`}>
+                        {item.icon ? (
+                          <>
+                            <item.icon size={28} className="text-foreground font-light" />
+                            <p className="text-sm font-normal text-muted-foreground">
+                              {item.label}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="sm:text-xl text-lg font-semibold text-foreground">
+                              {item.value ?? item.price}
+                            </p>
+                            <p className="text-sm font-normal text-muted-foreground">
+                              {item.label}
+                            </p>
+                          </>
+                        )}
+                      </Link>
+                    )}
                     {index < propertyFeatures.length - 1 && (
                       <Separator orientation="vertical" className="h-12 my-auto sm:block hidden" />
                     )}
@@ -142,15 +266,33 @@ const HeroSection = () => {
                 </Link>
                 <Marquee reverse pauseOnHover className="w-full [--duration:24s]">
                   {categoryItems.map((item, index) => (
-                    <Link
+                    <button
                       key={index}
-                      href={item.href}
-                      className="mr-3 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-2 text-sm text-foreground">
+                      type="button"
+                      onClick={() => setSelectedCategory(item.label)}
+                      className={`mr-3 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm text-left transition-colors ${
+                        selectedCategory === item.label
+                          ? "border-primary/50 bg-primary/10 text-primary"
+                          : "border-border/60 bg-background text-foreground"
+                      }`}>
                       <item.icon size={16} className="text-primary" />
-                      <span>{item.label}</span>
-                    </Link>
+                      <span className="flex flex-col items-start leading-tight">
+                        <span className="font-medium leading-none">{item.label}</span>
+                        {selectedCategory === item.label && selectedCategoryDistance && (
+                          <span className="mt-1 text-[10px] leading-none text-muted-foreground">
+                            {selectedCategoryDistance}
+                          </span>
+                        )}
+                      </span>
+                    </button>
                   ))}
                 </Marquee>
+                {isLoading && (
+                  <p className="mt-2 px-2 text-xs text-muted-foreground">Loading nearby distance...</p>
+                )}
+                {!isLoading && nearbyError && displayedServices.length > 0 && (
+                  <p className="mt-2 px-2 text-xs text-muted-foreground">Using demo distance data.</p>
+                )}
               </motion.div>
             </div>
           </div>
@@ -167,6 +309,41 @@ const HeroSection = () => {
             top="top-56 sm:top-40 left-0" />
         </>
       </div>
+
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="min-h-80 sm:max-w-xl md:max-w-2xl bg-background p-6 text-foreground">
+          <DialogHeader className="gap-3">
+            <DialogTitle className="text-xl">Smart Search</DialogTitle>
+            <DialogDescription>
+              Search local services by name, category, or area.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Try: electrician, tutor, cafe, MG Road"
+            />
+            <div className="flex flex-wrap gap-3">
+              {categoryItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    setSearchText(item.label);
+                    setSelectedCategory(item.label);
+                  }}
+                  className="rounded-full border border-border bg-muted/40 px-4 py-1.5 text-sm text-foreground hover:bg-muted">
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dark and light mode are automatically supported in this modal.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

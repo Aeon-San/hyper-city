@@ -105,12 +105,12 @@ export const HeroHeader = () => {
                             <div
                                 className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end md:w-fit">
                                 <Button asChild variant="outline" size="sm" className="h-9 px-4">
-                                    <Link href="#">
+                                    <Link href="/login">
                                         <span>Login</span>
                                     </Link>
                                 </Button>
                                 <Button asChild size="sm" className="h-9 px-4">
-                                    <Link href="#">
+                                    <Link href="/signup">
                                         <span>Sign Up</span>
                                     </Link>
                                 </Button>
