@@ -1,5 +1,7 @@
 import Hero02Page from "@/components/shadcn-space/blocks/hero-02";
 
-export default function Home() {
-  return <Hero02Page />;
+const Page = () => {
+    return (<Hero02Page />);
 }
+
+export default Page
