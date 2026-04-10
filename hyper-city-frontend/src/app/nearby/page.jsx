@@ -1,19 +1,51 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { HeroHeader } from "@/components/header"
 import { MapPin, Search, ShieldCheck } from "lucide-react"
+
+const NearbyMap = dynamic(() => import("@/components/nearby-map"), {
+  ssr: false,
+})
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "")
 
 const categoryItems = [
+  { icon: MapPin, label: "All" },
   { icon: MapPin, label: "Repairs" },
   { icon: Search, label: "Tutors" },
   { icon: ShieldCheck, label: "Food" },
   { icon: MapPin, label: "Business" },
   { icon: ShieldCheck, label: "Trusted" },
+  { icon: MapPin, label: "Electricians" },
 ]
+
+const toRadians = (degrees) => (degrees * Math.PI) / 180
+
+const getDistanceKm = (lat1, lng1, lat2, lng2) => {
+  const earthRadiusKm = 6371
+  const dLat = toRadians(lat2 - lat1)
+  const dLng = toRadians(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return Number((earthRadiusKm * c).toFixed(2))
+}
+
+const formatDistance = (distanceKm) => {
+  if (distanceKm === null || distanceKm === undefined) {
+    return "Nearby"
+  }
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)} m`
+  }
+  return `${distanceKm} km`
+}
 
 const dummyServicesByCategory = {
   Repairs: [
@@ -64,22 +96,14 @@ const dummyServicesByCategory = {
 }
 
 export default function NearbyPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Repairs")
-  const [selectedCity, setSelectedCity] = useState("Delhi")
+  const [selectedCategory, setSelectedCategory] = useState("All")
   const [coords, setCoords] = useState(null)
   const [services, setServices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [locationRequired, setLocationRequired] = useState(true)
 
-  const cities = ["Delhi", "Mumbai", "Bangalore"]
-
-  const displayedServices = useMemo(() => {
-    if (!selectedCity) {
-      return []
-    }
-    return services.filter((service) => service.city === selectedCity)
-  }, [selectedCity, services])
+  const displayedServices = useMemo(() => services, [services])
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -108,76 +132,83 @@ export default function NearbyPage() {
   }, [])
 
   useEffect(() => {
-    setIsLoading(true)
-    // Simulate loading delay
-    setTimeout(() => {
-      const categoryServices = dummyServicesByCategory[selectedCategory] || []
-      setServices(categoryServices)
-      setIsLoading(false)
-    }, 300)
-  }, [selectedCategory])
+    const fetchNearby = async () => {
+      if (!coords) return
+
+      setIsLoading(true)
+      setError("")
+
+      try {
+        const params = new URLSearchParams({
+          country: "India",
+          search: "",
+          limit: "24",
+          ...(selectedCategory !== "All" ? { category: selectedCategory } : {}),
+        })
+
+        const response = await fetch(`${API_BASE_URL}/api/services/listings?${params.toString()}`)
+        const payload = await response.json()
+
+        if (!response.ok || payload.success === false) {
+          throw new Error(payload.message || "Unable to fetch nearby services.")
+        }
+
+        const serviceData = Array.isArray(payload.data) ? payload.data : []
+        const servicesWithDistance = serviceData
+          .map((service) => {
+            const coordinates = service.location?.coordinates
+            const distanceKm = coordinates
+              ? getDistanceKm(coords.lat, coords.lng, coordinates[1], coordinates[0])
+              : null
+
+            return {
+              ...service,
+              distanceKm,
+            }
+          })
+          .filter((service) => service.distanceKm !== null && service.distanceKm <= 10)
+
+        servicesWithDistance.sort((a, b) => a.distanceKm - b.distanceKm)
+
+        setServices(servicesWithDistance)
+      } catch (err) {
+        setError(err.message || "Unable to fetch nearby services.")
+        setServices([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchNearby()
+  }, [coords, selectedCategory])
 
   return (
-    <main className="min-h-screen w-full bg-background px-4 py-10 text-foreground md:px-6 lg:px-10">
-      <div className="w-full max-w-full space-y-8">
-        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] font-semibold text-muted-foreground">Nearby Services</p>
-            <h1 className="mt-2 text-3xl font-bold">Location-based listings with vendor details</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-600">
-              Discover nearby services, vendor names, and service categories from your city. Enable location for live results or browse demo listings.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/">Back Home</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="#services">Jump to services</a>
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-          <aside className="space-y-4 rounded-3xl border border-border bg-background p-4">
-            <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Your Location</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {coords ? "Location enabled" : "Location disabled or permission denied."}
+    <>
+      <HeroHeader />
+      <main className="min-h-screen w-full bg-background px-4 pt-24 pb-10 text-foreground md:px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
+        <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-sm lg:sticky lg:top-24">
+            <div className="rounded-3xl border border-border/70 bg-background p-4">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Your Location</p>
+              <p className="mt-2 text-xs text-black/70 dark:text-white/80">
+                {coords ? `✓ Enabled (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})` : "❌ Location disabled or permission denied."}
               </p>
-              {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
+              {error ? <p className="mt-2 text-xs text-destructive font-semibold">{error}</p> : null}
             </div>
-            <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Select City</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {cities.map((city) => (
-                  <button
-                    key={city}
-                    type="button"
-                    onClick={() => setSelectedCity(city)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      selectedCity === city
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground hover:bg-muted/80"
-                    }`}>
-                    <MapPin className="mr-2 inline-block h-4 w-4" />
-                    {city}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Categories</p>
+            <div className="rounded-3xl border border-border/70 bg-background p-4">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Categories</p>
+
               <div className="mt-3 flex flex-wrap gap-2">
                 {categoryItems.map((item) => (
                   <button
                     key={item.label}
                     type="button"
                     onClick={() => setSelectedCategory(item.label)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
                       selectedCategory === item.label
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground hover:bg-muted/80"
+                        : "bg-muted text-black dark:text-white hover:bg-muted/80"
                     }`}>
                     <item.icon className="mr-2 inline-block h-4 w-4" />
                     {item.label}
@@ -185,72 +216,114 @@ export default function NearbyPage() {
                 ))}
               </div>
             </div>
-          </aside>
 
-          <section id="services" className="space-y-4">
-            <div className="rounded-3xl border border-border bg-card p-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.3em] font-semibold text-muted-foreground">Nearby Services</p>
-                  <h2 className="mt-2 text-2xl font-bold">{selectedCategory} in {selectedCity}</h2>
-                </div>
-                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
-                  {displayedServices.length} results
-                </div>
-              </div>
-              {displayedServices.length === 0 && !isLoading && (
-                <div className="mt-6 rounded-3xl border border-border/70 bg-slate-50 p-6 text-sm font-semibold text-slate-700">
-                  No {selectedCategory} services found in {selectedCity}. Try selecting a different category or city.
-                </div>
-              )}
-            </div>
-
-            {displayedServices.length > 0 && (
-              <div className="grid gap-4">
-                {(isLoading ? Array.from({ length: 3 }) : displayedServices).map((service, index) => (
-                  <div
-                    key={service?._id || index}
-                    className="rounded-3xl border border-border bg-white p-6 shadow-sm"
-                  >
-                    {isLoading ? (
-                      <div className="space-y-4 animate-pulse">
-                        <div className="h-6 w-1/3 rounded bg-slate-200" />
-                        <div className="h-4 w-1/2 rounded bg-slate-200" />
-                        <div className="h-4 w-full rounded bg-slate-200" />
-                        <div className="h-4 w-3/4 rounded bg-slate-200" />
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-xl font-bold text-slate-900">{service.name}</p>
-                            <p className="mt-1 text-sm font-semibold text-muted-foreground">Category: {service.category || "General"}</p>
-                          </div>
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                            {service.distanceKm ? `${service.distanceKm} km` : "Nearby"}
-                          </span>
-                        </div>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Vendor</p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900">{service.vendorName || "Local Vendor"}</p>
-                          </div>
-                          <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Location</p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900">
-                              {service.area}, {service.city}
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    )}
+            <div className="rounded-3xl border border-border/70 bg-background p-4">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Top Services</p>
+              <div className="mt-3 space-y-3">
+                {(displayedServices.length > 0 ? displayedServices.slice(0, 4) : dummyServicesByCategory[selectedCategory] || []).map((service) => (
+                  <div key={service._id} className="rounded-2xl border border-border/70 bg-card px-3 py-3 text-sm">
+                    <p className="font-semibold text-slate-900 dark:text-white">{service.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{service.vendorName || 'Local vendor'}</p>
                   </div>
                 ))}
               </div>
-            )}
-          </section>
+            </div>
+          </aside>
+
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-border bg-background p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Nearby Map</p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Map view of nearby provider locations and your current position.</p>
+                </div>
+                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  {coords ? "Live map" : "Default view"}
+                </div>
+              </div>
+              <div className="mt-4 h-[420px] overflow-hidden rounded-3xl border border-border/70 bg-slate-100 dark:bg-slate-950">
+                <NearbyMap coords={coords} services={services} />
+              </div>
+            </div>
+
+            <section id="services" className="space-y-4">
+              <div className="rounded-3xl border border-border bg-background p-4 shadow-sm">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] font-semibold text-black/60 dark:text-white/60">Nearby Services</p>
+                    <h2 className="mt-1 text-xl font-bold text-black dark:text-white">
+                      {selectedCategory === "All" ? "Nearby services" : `${selectedCategory} near you`}
+                    </h2>
+                  </div>
+                  <div className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs text-slate-700 dark:text-slate-200 font-semibold">
+                    {coords ? "Live results" : "Location required"}
+                  </div>
+                </div>
+                {!coords && (
+                  <div className="mt-3 rounded-3xl border border-border/70 bg-slate-50 dark:bg-slate-800 p-4 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Enable location access to view nearby service listings based on your coordinates.
+                  </div>
+                )}
+              </div>
+
+              {displayedServices.length > 0 ? (
+                <div className="grid gap-4">
+                  {error && (
+                    <div className="rounded-3xl border border-destructive/50 bg-destructive/10 p-6 text-sm text-destructive font-semibold">
+                      <p className="mb-3">{error}</p>
+                      <p className="text-xs font-medium">Showing demo listings instead while we fix the location service...</p>
+                    </div>
+                  )}
+                  {(isLoading ? Array.from({ length: 3 }) : displayedServices.length > 0 ? displayedServices : (error ? dummyServicesByCategory[selectedCategory] || [] : [])).map((service, index) => (
+                    <div key={service?._id || index} className="rounded-3xl border border-border/70 bg-white p-6 shadow-sm">
+                      {isLoading ? (
+                        <div className="space-y-4 animate-pulse">
+                          <div className="h-6 w-1/3 rounded bg-slate-200" />
+                          <div className="h-4 w-1/2 rounded bg-slate-200" />
+                          <div className="h-4 w-full rounded bg-slate-200" />
+                          <div className="h-4 w-3/4 rounded bg-slate-200" />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-xl font-bold text-slate-900">{service.name}</p>
+                              <p className="mt-1 text-sm font-semibold text-muted-foreground">Category: {service.category || "General"}</p>
+                            </div>
+                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                              {formatDistance(service.distanceKm)}
+                            </span>
+                          </div>
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Vendor</p>
+                              <p className="mt-1 text-sm font-semibold text-slate-900">{service.vendorName || "Local Vendor"}</p>
+                            </div>
+                            <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Location</p>
+                              <p className="mt-1 text-sm font-semibold text-slate-900">
+                                {service.area}, {service.city}
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                !isLoading && !error && (
+                  <div className="rounded-3xl border border-border/70 bg-slate-50 dark:bg-slate-800 p-6 text-center">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No {selectedCategory.toLowerCase()} services found within 10km radius.</p>
+                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">Try selecting a different category or check back later.</p>
+                  </div>
+                )
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </main>
+    </>
   )
 }

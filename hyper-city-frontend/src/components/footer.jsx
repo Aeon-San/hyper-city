@@ -28,28 +28,28 @@ export default function FooterSection() {
         <footer className="border-t bg-background py-16 text-foreground md:py-24">
             <div className="mx-auto max-w-5xl px-6">
                 <Link href="/" aria-label="go home" className="mx-auto block size-fit mb-8">
-                    <span className="text-2xl font-bold text-foreground">Hyper City</span>
+                    <span className="text-3xl font-bold text-black dark:text-white">Hyper City</span>
                 </Link>
 
-                <div className="my-8 flex flex-wrap justify-center gap-8 text-sm">
+                <div className="my-8 flex flex-wrap justify-center gap-8 text-lg font-medium">
                     {links.map((link, index) => (
                         <Link
                             key={index}
                             href={link.href}
-                            className="text-muted-foreground hover:text-foreground block duration-150 transition">
+                            className="text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white block duration-150 transition">
                             <span>{link.title}</span>
                         </Link>
                     ))}
                 </div>
-                <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
+                <div className="my-8 flex flex-wrap justify-center gap-6">
                     <Link
                         href="#"
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="X/Twitter"
-                        className="text-muted-foreground hover:text-foreground block transition">
+                        className="text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white block transition">
                         <svg
-                            className="size-6"
+                            className="size-7"
                             xmlns="http://www.w3.org/2000/svg"
                             width="1em"
                             height="1em"
@@ -64,9 +64,9 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="LinkedIn"
-                        className="text-muted-foreground hover:text-foreground block transition">
+                        className="text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white block transition">
                         <svg
-                            className="size-6"
+                            className="size-7"
                             xmlns="http://www.w3.org/2000/svg"
                             width="1em"
                             height="1em"
@@ -81,9 +81,9 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Facebook"
-                        className="text-muted-foreground hover:text-foreground block transition">
+                        className="text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white block transition">
                         <svg
-                            className="size-6"
+                            className="size-7"
                             xmlns="http://www.w3.org/2000/svg"
                             width="1em"
                             height="1em"
@@ -98,9 +98,9 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Instagram"
-                        className="text-muted-foreground hover:text-foreground block transition">
+                        className="text-black/70 dark:text-white/80 hover:text-black dark:hover:text-white block transition">
                         <svg
-                            className="size-6"
+                            className="size-7"
                             xmlns="http://www.w3.org/2000/svg"
                             width="1em"
                             height="1em"
@@ -111,7 +111,7 @@ export default function FooterSection() {
                         </svg>
                     </Link>
                 </div>
-                <span className="text-muted-foreground block text-center text-sm"> © {new Date().getFullYear()} Hyper City, All rights reserved</span>
+                <span className="text-black/70 dark:text-white/80 block text-center text-base font-medium"> © {new Date().getFullYear()} Hyper City, All rights reserved</span>
             </div>
         </footer>
     );

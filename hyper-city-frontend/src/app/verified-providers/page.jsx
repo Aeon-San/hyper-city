@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggleButton } from '@/components/theme-toggle-button'
+import { HeroHeader } from '@/components/header'
+import { useAuthStore } from '@/store/use-auth-store'
 import {
   Search,
   ShieldCheck,
@@ -650,7 +652,20 @@ const ProviderCard = ({ provider, index, onView }) => {
   )
 }
 
-const ProviderModal = ({ provider, isOpen, onClose }) => {
+const ProviderModal = ({
+  provider,
+  isOpen,
+  onClose,
+  reviews,
+  reviewLoading,
+  reviewError,
+  newRating,
+  newComment,
+  setNewRating,
+  setNewComment,
+  handleSubmitReview,
+  user,
+}) => {
   if (!isOpen || !provider) return null
 
   return (
@@ -658,16 +673,21 @@ const ProviderModal = ({ provider, isOpen, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg p-4"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card dark:bg-card"
+        className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-card dark:bg-card [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onClick={(e) => e.stopPropagation()}
       >
+        {reviewLoading ? (
+          <div className="absolute inset-x-0 top-0 h-1 overflow-hidden rounded-t-2xl bg-slate-200/80 dark:bg-slate-700/80">
+            <div className="h-full w-full bg-primary/70 animate-pulse" />
+          </div>
+        ) : null}
         {/* Close button */}
         <button
           onClick={onClose}
@@ -765,57 +785,153 @@ const ProviderModal = ({ provider, isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 rounded-lg bg-secondary/30 p-4 dark:bg-secondary/30">
-                <Mail className="h-5 w-5 flex-shrink-0 text-red-600" />
-                <div>
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">Email</p>
-                  <a
-                    href={`mailto:${provider.email}`}
-                    className="font-semibold text-foreground hover:text-primary dark:text-foreground dark:hover:text-primary"
-                  >
-                    {provider.email}
-                  </a>
+              {provider.email ? (
+                <div className="flex items-center gap-4 rounded-lg bg-secondary/30 p-4 dark:bg-secondary/30">
+                  <Mail className="h-5 w-5 flex-shrink-0 text-red-600" />
+                  <div>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Email</p>
+                    <a
+                      href={`mailto:${provider.email}`}
+                      className="font-semibold text-foreground hover:text-primary dark:text-foreground dark:hover:text-primary"
+                    >
+                      {provider.email}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              <div className="flex items-center gap-4 rounded-lg bg-secondary/30 p-4 dark:bg-secondary/30">
-                <Globe className="h-5 w-5 flex-shrink-0 text-primary" />
-                <div>
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">Website</p>
-                  <a
-                    href={`https://${provider.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-foreground hover:text-primary dark:text-foreground dark:hover:text-primary"
-                  >
-                    {provider.website}
-                  </a>
+              {provider.website ? (
+                <div className="flex items-center gap-4 rounded-lg bg-secondary/30 p-4 dark:bg-secondary/30">
+                  <Globe className="h-5 w-5 flex-shrink-0 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Website</p>
+                    <a
+                      href={`https://${provider.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-foreground hover:text-primary dark:text-foreground dark:hover:text-primary"
+                    >
+                      {provider.website}
+                    </a>
+                  </div>
                 </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Reviews */}
+          <div className="space-y-4 border-t border-border pt-6 dark:border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground dark:text-foreground">Customer Reviews</h2>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Read what other users have said.</p>
               </div>
+              <span className="rounded-full bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary-foreground dark:bg-secondary/30">
+                {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {reviewLoading ? (
+              <div className="space-y-2">
+                <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            ) : reviewError ? (
+              <div className="rounded-2xl border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                {reviewError}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4 text-sm text-muted-foreground dark:border-border">
+                No reviews yet. Be the first to leave feedback!
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review._id} className="rounded-2xl border border-border/70 bg-secondary/30 p-4 dark:border-border">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground dark:text-foreground">{review.userId?.name || 'Anonymous'}</p>
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/10">
+                        {review.rating.toFixed(1)} ★
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground">{review.comment || 'No comment provided.'}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-border/70 bg-card p-4 dark:border-border">
+              <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Leave a Review</h3>
+              {user ? (
+                <form className="space-y-4" onSubmit={handleSubmitReview}>
+                  <div>
+                    <label className="text-sm font-medium text-foreground dark:text-foreground">Rating</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="0.5"
+                      value={newRating}
+                      onChange={(e) => setNewRating(parseFloat(e.target.value))}
+                      className="w-full mt-2"
+                    />
+                    <div className="mt-2 text-sm text-muted-foreground">{newRating.toFixed(1)} ★</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground dark:text-foreground">Comment</label>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 dark:border-border dark:bg-card"
+                      rows={4}
+                      placeholder="Share your experience..."
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={reviewLoading}>
+                      Submit Review
+                    </Button>
+                    <span className="text-xs text-muted-foreground dark:text-muted-foreground">You can review this provider once.</span>
+                  </div>
+                </form>
+              ) : (
+                <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4 text-sm text-muted-foreground dark:border-border">
+                  Please <Link href="/login" className="font-semibold text-primary">login</Link> to submit a review.
+                </div>
+              )}
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="border-t border-border pt-6 dark:border-border">
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="flex-1 bg-green-600 hover:bg-green-700">
-                <a href={`tel:${provider.phone}`} className="flex items-center justify-center gap-2">
-                  <Phone size={18} />
-                  Call Now
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <a href={`mailto:${provider.email}`} className="flex items-center justify-center gap-2">
-                  <Mail size={18} />
-                  Send Email
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <a href={`https://${provider.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
-                  <Globe size={18} />
-                  Visit Website
-                </a>
-              </Button>
+              {provider.phone ? (
+                <Button asChild className="flex-1 bg-green-600 hover:bg-green-700">
+                  <a href={`tel:${provider.phone}`} className="flex items-center justify-center gap-2">
+                    <Phone size={18} />
+                    Call Now
+                  </a>
+                </Button>
+              ) : null}
+              {provider.email ? (
+                <Button asChild variant="outline" className="flex-1">
+                  <a href={`mailto:${provider.email}`} className="flex items-center justify-center gap-2">
+                    <Mail size={18} />
+                    Send Email
+                  </a>
+                </Button>
+              ) : null}
+              {provider.website ? (
+                <Button asChild variant="outline" className="flex-1">
+                  <a href={`https://${provider.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+                    <Globe size={18} />
+                    Visit Website
+                  </a>
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -825,6 +941,8 @@ const ProviderModal = ({ provider, isOpen, onClose }) => {
 }
 
 export default function VerifiedProvidersPage() {
+  const user = useAuthStore((state) => state.user)
+  const authToken = useAuthStore((state) => state.token)
   const [providers, setProviders] = useState(verifiedProvidersData)
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -832,8 +950,65 @@ export default function VerifiedProvidersPage() {
   const [loading, setLoading] = useState(false)
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [newRating, setNewRating] = useState(5)
+  const [newComment, setNewComment] = useState('')
+  const [reviewError, setReviewError] = useState('')
 
   const categories = ['All', 'Repairs', 'Tutors', 'Food', 'Business', 'Trusted']
+
+  const fetchProviders = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        country: 'India',
+        search: search.trim(),
+        limit: '30',
+      })
+      if (selectedCategory !== 'All') {
+        params.set('category', selectedCategory)
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/services/listings?${params.toString()}`)
+      const payload = await response.json()
+
+      if (!response.ok || payload.success === false) {
+        throw new Error(payload.message || 'Unable to fetch providers')
+      }
+
+      const serviceData = Array.isArray(payload.data) ? payload.data : []
+      const mappedProviders = serviceData.map((service) => ({
+        _id: service._id,
+        name: service.name || 'Service Provider',
+        vendorName: service.vendorName || 'Unknown Vendor',
+        category: service.category || 'General',
+        city: service.city || 'Unknown',
+        area: service.area || service.address || 'Unknown Area',
+        rating: service.rating || 0,
+        reviewsCount: service.numReviews || 0,
+        verified: service.status === 'approved',
+        badge:
+          service.rating >= 4.8 ? 'Premium' : service.rating >= 4.7 ? 'Expert' : 'Trusted',
+        phone: service.phone || '',
+        email: '',
+        website: service.website || '',
+        description: service.address || `${service.category || 'Service'} in ${service.area || service.city}`,
+        services: [service.category || 'Service'],
+      }))
+
+      setProviders(mappedProviders)
+    } catch (err) {
+      toast.error(err.message || 'Unable to load providers')
+      setProviders(verifiedProvidersData)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedCategory, search])
+
+  useEffect(() => {
+    fetchProviders()
+  }, [fetchProviders])
 
   const filteredProviders = useMemo(() => {
     return providers.filter((provider) => {
@@ -849,50 +1024,106 @@ export default function VerifiedProvidersPage() {
     })
   }, [providers, search, selectedCategory, minRating])
 
-  const handleSearch = useCallback((e) => {
-    e.preventDefault()
-    toast.success(`Found ${filteredProviders.length} verified providers`)
-  }, [filteredProviders.length])
+  const fetchReviews = useCallback(async (serviceId) => {
+    if (!serviceId) return
+    setReviewLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reviews/${serviceId}?limit=10`)
+      const payload = await response.json()
+      if (!response.ok || payload.success === false) {
+        throw new Error(payload.message || 'Unable to load reviews')
+      }
+      setReviews(payload.data || [])
+    } catch (err) {
+      setReviewError(err.message || 'Unable to load reviews')
+    } finally {
+      setReviewLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selectedProvider && selectedProvider._id) {
+      fetchReviews(selectedProvider._id)
+    }
+  }, [selectedProvider, fetchReviews])
+
+  const handleSubmitReview = async (event) => {
+    event.preventDefault()
+    if (!user) {
+      toast.error('Please login to submit a review')
+      return
+    }
+
+    if (!selectedProvider) {
+      toast.error('No provider selected')
+      return
+    }
+
+    try {
+      setReviewLoading(true)
+      setReviewError('')
+
+      const response = await fetch(`${API_BASE_URL}/api/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          serviceId: selectedProvider._id,
+          rating: newRating,
+          comment: newComment.trim(),
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || payload.success === false) {
+        throw new Error(payload.message || 'Unable to submit review')
+      }
+
+      toast.success('Review submitted successfully')
+      setNewComment('')
+      setNewRating(5)
+      fetchReviews(selectedProvider._id)
+    } catch (err) {
+      setReviewError(err.message || 'Unable to submit review')
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
+  const handleSearch = useCallback(
+    (e) => {
+      e.preventDefault()
+      fetchProviders()
+    },
+    [fetchProviders]
+  )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-background dark:to-background">
-      {/* Header Navigation */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-md dark:border-border dark:bg-background/80">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-foreground">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-              Hyper City
-            </Link>
-            <div className="flex items-center gap-3">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/">← Back Home</Link>
-              </Button>
-              <ThemeToggleButton />
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <>
+      <HeroHeader />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-background dark:to-background pt-24">
       {/* Hero Section */}
       <section className="border-b border-border bg-card dark:border-border dark:bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-primary/10 p-4 dark:bg-primary/10">
-                <ShieldCheck className="h-8 w-8 text-primary dark:text-primary" />
+            <div className="mb-3 flex justify-center">
+              <div className="rounded-full bg-primary/10 p-3 dark:bg-primary/10">
+                <ShieldCheck className="h-7 w-7 text-primary dark:text-primary" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-foreground dark:text-foreground sm:text-5xl md:text-6xl">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground dark:text-foreground sm:text-3xl">
               Verified & <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">Trusted Providers</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground dark:text-muted-foreground">
-              Connect with vetted professionals who have proven track records, verified credentials, and excellent customer ratings.
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground dark:text-muted-foreground">
+              Browse trusted local professionals and view provider listings instantly.
             </p>
           </motion.div>
 
@@ -901,7 +1132,7 @@ export default function VerifiedProvidersPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="mt-12 space-y-6"
+            className="mt-6 space-y-4"
           >
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-2">
@@ -911,7 +1142,7 @@ export default function VerifiedProvidersPage() {
                   placeholder="Search by provider name, vendor, or city..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 h-12 text-base dark:bg-card dark:border-border"
+                  className="pl-10 h-10 text-sm dark:bg-card dark:border-border"
                 />
               </div>
               <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90 dark:bg-primary">
@@ -1003,6 +1234,7 @@ export default function VerifiedProvidersPage() {
                   onView={(provider) => {
                     setSelectedProvider(provider)
                     setIsModalOpen(true)
+                    fetchReviews(provider._id)
                   }}
                 />
               ))}
@@ -1016,6 +1248,15 @@ export default function VerifiedProvidersPage() {
         provider={selectedProvider} 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        reviews={reviews}
+        reviewLoading={reviewLoading}
+        reviewError={reviewError}
+        newRating={newRating}
+        newComment={newComment}
+        setNewRating={setNewRating}
+        setNewComment={setNewComment}
+        handleSubmitReview={handleSubmitReview}
+        user={user}
       />
 
       {/* CTA Section */}
@@ -1047,5 +1288,6 @@ export default function VerifiedProvidersPage() {
         </div>
       </section>
     </div>
+    </>
   )
 }

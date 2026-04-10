@@ -74,11 +74,11 @@ export default function HeroSection() {
                 transition={{ duration: 0.8 }}
                 className="relative text-slate-900 text-start z-30"
               >
-                <p className="text-sm font-semibold text-slate-600 mb-2">Ghar Baithe Services</p>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
+                <p className="text-lg font-bold text-black/60 dark:text-white/60 mb-2">Ghar Baithe Services</p>
+                <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-black dark:text-white mb-6 leading-tight">
                   Find Local<br /><span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-blue-400">Services</span><br />Near You
                 </h1>
-                <p className="text-lg text-slate-700 max-w-xl mb-8">Discover electricians, tutors, cafes, repair technicians and local businesses instantly with GPS-powered search.</p>
+                <p className="text-xl text-black/70 dark:text-white/80 max-w-xl mb-8">Discover electricians, tutors, cafes, repair technicians and local businesses instantly with GPS-powered search.</p>
                 <motion.div 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

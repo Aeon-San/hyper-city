@@ -84,14 +84,14 @@ export default function SignupPage() {
                         <Link href="/" aria-label="go home" className="mx-auto block w-fit">
                             <LogoIcon />
                         </Link>
-                        <h1 className="mb-1 mt-4 text-xl font-semibold">Create a Hyper City Account</h1>
-                        <p className="text-sm">Join Hyper City to discover trusted local services.</p>
+                        <h1 className="mb-1 mt-4 text-3xl font-bold text-black dark:text-white">Create a Hyper City Account</h1>
+                        <p className="mt-2 text-base text-black/70 dark:text-white/80">Join Hyper City to discover trusted local services.</p>
                     </div>
 
                     <div className="mt-6 space-y-6">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="firstname" className="block text-sm">
+                                <Label htmlFor="firstname" className="block text-base font-semibold text-black dark:text-white">
                                     First Name
                                 </Label>
                                 <Input
@@ -104,7 +104,7 @@ export default function SignupPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="lastname" className="block text-sm">
+                                <Label htmlFor="lastname" className="block text-base font-semibold text-black dark:text-white">
                                     Last Name
                                 </Label>
                                 <Input
@@ -119,7 +119,7 @@ export default function SignupPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="block text-sm">
+                            <Label htmlFor="email" className="block text-base font-semibold text-black dark:text-white">
                                 Email
                             </Label>
                             <Input
@@ -133,14 +133,14 @@ export default function SignupPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="role" className="block text-sm">
+                            <Label htmlFor="role" className="block text-base font-semibold text-black dark:text-white">
                                 Account Type
                             </Label>
                             <select
                                 id="role"
                                 value={role}
                                 onChange={(e) => setRole(e.target.value)}
-                                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40">
+                                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-base text-black dark:text-white outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40">
                                 <option value="user">User</option>
                                 <option value="vendor">Vendor</option>
                                 <option value="admin">Admin</option>
@@ -149,7 +149,7 @@ export default function SignupPage() {
 
                         {role === 'admin' && (
                             <div className="space-y-2">
-                                <Label htmlFor="admin-secret" className="block text-sm">
+                                <Label htmlFor="admin-secret" className="block text-base font-semibold text-black dark:text-white">
                                     Admin Secret
                                 </Label>
                                 <Input
@@ -166,10 +166,10 @@ export default function SignupPage() {
 
                         <div className="space-y-0.5">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="pwd" className="text-sm">
+                                <Label htmlFor="pwd" className="text-base font-semibold text-black dark:text-white">
                                     Password
                                 </Label>
-                                <span className="text-xs text-muted-foreground">Min 8 characters</span>
+                                <span className="text-sm text-black/60 dark:text-white/60 font-medium">Min 8 characters</span>
                             </div>
                             <Input
                                 type="password"
@@ -181,7 +181,7 @@ export default function SignupPage() {
                                 className="input sz-md variant-mixed" />
                         </div>
 
-                        {error && <p className="text-sm text-destructive">{error}</p>}
+                        {error && <p className="text-base font-semibold text-destructive">{error}</p>}
 
                         <Button className="w-full" type="submit" disabled={isLoading}>
                             {isLoading ? 'Creating Account...' : 'Sign Up'}
@@ -191,7 +191,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="p-3">
-                    <p className="text-accent-foreground text-center text-sm">
+                    <p className="text-accent-foreground text-center text-base font-medium">
                         Already have an account?
                         <Button asChild variant="link" className="px-2">
                             <Link href="/login">Sign In</Link>

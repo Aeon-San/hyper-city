@@ -25,6 +25,7 @@ export const useAuthStore = create(
   persist(
     (set) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -48,6 +49,7 @@ export const useAuthStore = create(
 
           set({
             user: payload.data || null,
+            token: payload.token || null,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -78,6 +80,7 @@ export const useAuthStore = create(
 
           set({
             user: payload.data || null,
+            token: payload.token || null,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -108,6 +111,7 @@ export const useAuthStore = create(
         } finally {
           set({
             user: null,
+            token: null,
             isAuthenticated: false,
             isLoading: false,
             error: null,
@@ -150,6 +154,7 @@ export const useAuthStore = create(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
+        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {

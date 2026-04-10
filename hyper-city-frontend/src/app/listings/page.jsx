@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { HeroHeader } from "@/components/header";
 import { Search, ShieldCheck, MapPin, BriefcaseBusiness, GraduationCap, UtensilsCrossed, Wrench } from "lucide-react";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const categoryItems = [
+  { icon: ShieldCheck, label: "All" },
   { icon: Wrench, label: "Repairs" },
   { icon: GraduationCap, label: "Tutors" },
   { icon: UtensilsCrossed, label: "Food" },
@@ -17,8 +19,8 @@ const categoryItems = [
 ];
 
 export default function ListingsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Repairs");
-  const [city, setCity] = useState("Your City");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [city, setCity] = useState("");
   const [search, setSearch] = useState("");
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +34,17 @@ export default function ListingsPage() {
 
     try {
       const params = new URLSearchParams({
-        city: city.trim() || "",
-        category: selectedCategory,
+        country: "India",
         search: search.trim(),
         limit: "24",
       });
+
+      if (city.trim()) {
+        params.set("city", city.trim())
+      }
+      if (selectedCategory && selectedCategory !== "All") {
+        params.set("category", selectedCategory)
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/services/listings?${params.toString()}`);
       const payload = await response.json();
@@ -59,13 +67,15 @@ export default function ListingsPage() {
   }, [fetchLocalListings]);
 
   return (
-    <main className="min-h-screen w-full bg-background px-4 py-10 text-foreground md:px-6 lg:px-10">
+    <>
+      <HeroHeader />
+      <main className="min-h-screen w-full bg-background px-4 pt-24 pb-10 text-foreground md:px-6 lg:px-10">
       <div className="w-full max-w-full space-y-8">
-        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 rounded-3xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] font-semibold text-muted-foreground">Local Listings</p>
-            <h1 className="mt-2 text-3xl font-bold">Browse the broader local service directory</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-600">
+            <p className="text-xs uppercase tracking-[0.3em] font-semibold text-black/60 dark:text-white/60">Local Listings</p>
+            <h1 className="mt-1 text-xl font-bold text-black dark:text-white">Browse the broader local service directory</h1>
+            <p className="mt-1 max-w-2xl text-xs font-medium text-black/70 dark:text-white/80">
               Explore trusted providers and service categories across the city. Use city search, filters, and keywords to compare options.
             </p>
           </div>
@@ -82,7 +92,7 @@ export default function ListingsPage() {
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
           <aside className="space-y-4 rounded-3xl border border-border bg-background p-4">
             <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Search by City</p>
+              <p className="text-base font-bold text-black dark:text-white">Search by City</p>
               <div className="mt-3 space-y-3">
                 <Input
                   placeholder="City name"
@@ -97,14 +107,14 @@ export default function ListingsPage() {
             </div>
 
             <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Categories</p>
+              <p className="text-base font-bold text-black dark:text-white">Categories</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {categoryItems.map((item) => (
                   <button
                     key={item.label}
                     type="button"
                     onClick={() => setSelectedCategory(item.label)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    className={`rounded-full px-4 py-2 text-base font-bold transition ${
                       selectedCategory === item.label
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-foreground hover:bg-muted/80"
@@ -117,8 +127,8 @@ export default function ListingsPage() {
             </div>
 
             <div className="rounded-3xl border border-border/70 bg-card p-4">
-              <p className="text-sm font-semibold">Why this page?</p>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="text-base font-bold text-black dark:text-white">Why this page?</p>
+              <p className="mt-2 text-base text-black/70 dark:text-white/80">
                 Local Listings show a broader catalog of businesses in your city. Use this page when you want to compare options, plan ahead, or browse trusted providers.
               </p>
             </div>
@@ -128,22 +138,22 @@ export default function ListingsPage() {
             <div className="rounded-3xl border border-border bg-card p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.3em] font-semibold text-muted-foreground">Local Listings</p>
-                  <h2 className="mt-2 text-2xl font-bold">{selectedCategory} available in {city || "your area"}</h2>
+                  <p className="text-base uppercase tracking-[0.3em] font-semibold text-black/60 dark:text-white/60">Local Listings</p>
+                  <h2 className="mt-2 text-3xl font-bold text-black dark:text-white">{selectedCategory === 'All' ? 'All categories' : selectedCategory} available in {city || 'your area'}</h2>
                 </div>
-                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                <div className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-base text-slate-700 dark:text-slate-200 font-semibold">
                   {isLoading ? "Loading..." : `${displayedResults.length} listings`}
                 </div>
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Browse</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">General local directory</p>
+                <div className="rounded-2xl border border-border/70 bg-slate-100 dark:bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-[0.2em] text-black/60 dark:text-white/60 font-semibold">Browse</p>
+                  <p className="mt-1 text-lg font-bold text-black dark:text-white">General local directory</p>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Use case</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">Compare vendors and categories</p>
+                <div className="rounded-2xl border border-border/70 bg-slate-100 dark:bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-[0.2em] text-black/60 dark:text-white/60 font-semibold">Use case</p>
+                  <p className="mt-1 text-lg font-bold text-black dark:text-white">Compare vendors and categories</p>
                 </div>
               </div>
             </div>
@@ -151,7 +161,7 @@ export default function ListingsPage() {
             <div className="rounded-3xl border border-border bg-card p-6">
               <div className="grid gap-4 md:grid-cols-[1fr_280px]">
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground" htmlFor="search">
+                  <label className="text-base font-bold text-black dark:text-white" htmlFor="search">
                     Search by keyword
                   </label>
                   <Input
@@ -221,5 +231,6 @@ export default function ListingsPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

@@ -72,13 +72,13 @@ export default function LoginPage() {
                         <Link href="/" aria-label="go home" className="mx-auto block w-fit">
                             <LogoIcon />
                         </Link>
-                        <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to Hyper City</h1>
-                        <p className="text-sm">Welcome back! Continue exploring nearby services.</p>
+                        <h1 className="mb-1 mt-4 text-3xl font-bold text-black dark:text-white">Sign In to Hyper City</h1>
+                        <p className="mt-2 text-base text-black/70 dark:text-white/80">Welcome back! Continue exploring nearby services.</p>
                     </div>
 
                     <div className="mt-6 space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="block text-sm">
+                            <Label htmlFor="email" className="block text-base font-semibold text-black dark:text-white">
                                 Email
                             </Label>
                             <Input
@@ -93,7 +93,7 @@ export default function LoginPage() {
 
                         <div className="space-y-0.5">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="pwd" className="text-sm">
+                                <Label htmlFor="pwd" className="text-base font-semibold text-black dark:text-white">
                                     Password
                                 </Label>
                                 <Button asChild variant="link" size="sm">
@@ -112,7 +112,7 @@ export default function LoginPage() {
                                 className="input sz-md variant-mixed" />
                         </div>
 
-                        {error && <p className="text-sm text-destructive">{error}</p>}
+                        {error && <p className="text-base font-semibold text-destructive">{error}</p>}
 
                         <Button className="w-full" type="submit" disabled={isLoading}>
                             {isLoading ? 'Signing In...' : 'Sign In'}
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="p-3">
-                    <p className="text-accent-foreground text-center text-sm">
+                    <p className="text-accent-foreground text-center text-base font-medium">
                         Don&apos;t have an account?
                         <Button asChild variant="link" className="px-2">
                             <Link href="/signup">Create account</Link>

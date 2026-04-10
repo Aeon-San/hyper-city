@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   BriefcaseBusiness,
   CalendarClock,
@@ -207,9 +207,11 @@ const moduleIconMap = {
   profile: UserRoundCog,
 }
 
-export default function DashboardPage() {
+export default function DashboardPage({ selectedModuleId = null }) {
   const router = useRouter()
+  const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
+  const authToken = useAuthStore((state) => state.token)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const logout = useAuthStore((state) => state.logout)
@@ -226,6 +228,20 @@ export default function DashboardPage() {
     phone: user?.phone || '',
     password: '',
   })
+
+  useEffect(() => {
+    if (pathname?.startsWith('/dashboard/')) {
+      const pathModule = pathname.split('/')[2]
+      if (pathModule && modules.some((module) => module.id === pathModule)) {
+        setActiveModuleId(pathModule)
+        return
+      }
+    }
+
+    if (!pathname?.startsWith('/dashboard/')) {
+      setActiveModuleId(modules[0]?.id || 'overview')
+    }
+  }, [pathname, modules])
   const [vendors, setVendors] = useState([])
   const [vendorLoading, setVendorLoading] = useState(false)
   const [vendorSearchInput, setVendorSearchInput] = useState('')
@@ -263,6 +279,14 @@ export default function DashboardPage() {
 
   const [categories, setCategories] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
+  const [adminCategories, setAdminCategories] = useState([])
+  const [adminCategoryLoading, setAdminCategoryLoading] = useState(false)
+  const [categoryActionLoading, setCategoryActionLoading] = useState(false)
+  const [categoryRequestOpen, setCategoryRequestOpen] = useState(false)
+  const [categoryRequestForm, setCategoryRequestForm] = useState({
+    name: '',
+    description: '',
+  })
   const [categoryForm, setCategoryForm] = useState({
     name: '',
     description: '',
@@ -273,6 +297,7 @@ export default function DashboardPage() {
     name: '',
     description: '',
     country: 'India',
+    status: 'approved',
   })
 
   const [pendingServices, setPendingServices] = useState([])
@@ -312,10 +337,28 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    if (modules.length > 0) {
+    if (categories.length > 0) {
+      const defaultCategory = categories[0]?.name || serviceCategories[0]
+      setServiceCreateForm((prev) => ({
+        ...prev,
+        category: categories.some((category) => category.name === prev.category)
+          ? prev.category
+          : defaultCategory,
+      }))
+      setServiceEditForm((prev) => ({
+        ...prev,
+        category: categories.some((category) => category.name === prev.category)
+          ? prev.category
+          : defaultCategory,
+      }))
+    }
+  }, [categories])
+
+  useEffect(() => {
+    if (modules.length > 0 && !selectedModuleId) {
       setActiveModuleId(modules[0].id)
     }
-  }, [modules])
+  }, [modules, selectedModuleId])
 
   const activeModule = useMemo(
     () => modules.find((module) => module.id === activeModuleId) || modules[0],
@@ -360,10 +403,15 @@ export default function DashboardPage() {
 
     try {
       const searchParam = serviceQuery.trim() ? `&search=${encodeURIComponent(serviceQuery.trim())}` : ''
+      // Admins see all services via /admin endpoint, vendors see only their services via /vendor
+      const endpoint = currentRole === 'admin' ? '/api/services/admin' : '/api/services/vendor'
+      const headers = currentRole === 'admin' && authToken ? { Authorization: `Bearer ${authToken}` } : {}
+      console.log('DEBUG fetchServices:', { currentRole, endpoint, authToken: !!authToken })
       const response = await fetch(
-        `${API_BASE_URL}/api/services/vendor?page=${servicePage}&limit=${serviceMeta.limit}${searchParam}`,
+        `${API_BASE_URL}${endpoint}?page=${servicePage}&limit=${serviceMeta.limit}${searchParam}`,
         {
           credentials: 'include',
+          headers,
         }
       )
       const payload = await parseDashboardResponse(response)
@@ -380,7 +428,7 @@ export default function DashboardPage() {
     } finally {
       setServiceLoading(false)
     }
-  }, [servicePage, serviceQuery, serviceMeta.limit])
+  }, [servicePage, serviceQuery, serviceMeta.limit, currentRole, authToken])
 
   const fetchCategoryList = useCallback(async () => {
     setCategoryLoading(true)
@@ -397,6 +445,23 @@ export default function DashboardPage() {
       setCategoryLoading(false)
     }
   }, [])
+
+  const fetchAdminCategories = useCallback(async () => {
+    setAdminCategoryLoading(true)
+    try {
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
+      const response = await fetch(`${API_BASE_URL}/api/categories?country=India&includePending=true`, {
+        credentials: 'include',
+        headers,
+      })
+      const payload = await parseDashboardResponse(response)
+      setAdminCategories(payload.data || [])
+    } catch (error) {
+      toast.error(error.message || 'Failed to load category requests')
+    } finally {
+      setAdminCategoryLoading(false)
+    }
+  }, [authToken])
 
   const fetchPendingServices = useCallback(async () => {
     setPendingLoading(true)
@@ -435,13 +500,16 @@ export default function DashboardPage() {
   }, [fetchCategoryList])
 
   useEffect(() => {
-    if (activeModuleId === 'services') {
+    if (activeModuleId === 'services' || activeModuleId === 'admin-services') {
       fetchServices()
     }
     if (activeModuleId === 'approvals') {
       fetchPendingServices()
     }
-  }, [activeModuleId, fetchServices, fetchPendingServices])
+    if (activeModuleId === 'categories') {
+      fetchAdminCategories()
+    }
+  }, [activeModuleId, fetchServices, fetchPendingServices, fetchAdminCategories])
 
   useEffect(() => {
     setProfileForm({
@@ -561,7 +629,7 @@ export default function DashboardPage() {
     setServiceEditId(service._id)
     setServiceEditForm({
       name: service.name || '',
-      category: service.category || serviceCategories[0],
+      category: service.category || categories[0]?.name || serviceCategories[0],
       phone: service.phone || '',
       city: service.city || '',
       area: service.area || '',
@@ -575,7 +643,7 @@ export default function DashboardPage() {
     setServiceEditId(null)
     setServiceEditForm({
       name: '',
-      category: serviceCategories[0],
+      category: categories[0]?.name || serviceCategories[0],
       phone: '',
       city: '',
       area: '',
@@ -606,7 +674,7 @@ export default function DashboardPage() {
   const resetServiceCreateForm = () => {
     setServiceCreateForm({
       name: '',
-      category: serviceCategories[0],
+      category: categories[0]?.name || serviceCategories[0],
       phone: '',
       city: '',
       area: '',
@@ -768,10 +836,12 @@ export default function DashboardPage() {
       return
     }
 
+    setCategoryActionLoading(true)
     try {
+      const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
       const response = await fetch(`${API_BASE_URL}/api/categories`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify(categoryForm),
       })
@@ -779,8 +849,97 @@ export default function DashboardPage() {
       toast.success('Category created')
       setCategoryForm({ name: '', description: '', country: 'India' })
       fetchCategoryList()
+      fetchAdminCategories()
     } catch (error) {
       toast.error(error.message || 'Failed to create category')
+    } finally {
+      setCategoryActionLoading(false)
+    }
+  }
+
+  const handleCategoryEditStart = (category) => {
+    setCategoryEditId(category._id)
+    setCategoryEditForm({
+      name: category.name || '',
+      description: category.description || '',
+      country: category.country || 'India',
+      status: category.status || 'approved',
+      isActive: category.isActive !== undefined ? category.isActive : true,
+    })
+  }
+
+  const handleCategoryEditCancel = () => {
+    setCategoryEditId(null)
+    setCategoryEditForm({ name: '', description: '', country: 'India' })
+  }
+
+  const handleCategoryUpdate = async (event) => {
+    event.preventDefault()
+    if (!categoryEditForm.name.trim()) {
+      toast.error('Category name is required')
+      return
+    }
+
+    setCategoryActionLoading(true)
+    try {
+      const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryEditId}`, {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify(categoryEditForm),
+      })
+      await parseDashboardResponse(response)
+      toast.success('Category updated successfully')
+      handleCategoryEditCancel()
+      fetchAdminCategories()
+      fetchCategoryList()
+    } catch (error) {
+      toast.error(error.message || 'Failed to update category')
+    } finally {
+      setCategoryActionLoading(false)
+    }
+  }
+
+  const handleCategoryApprove = async (categoryId) => {
+    setCategoryActionLoading(true)
+    try {
+      const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ status: 'approved' }),
+      })
+      await parseDashboardResponse(response)
+      toast.success('Category approved')
+      fetchAdminCategories()
+      fetchCategoryList()
+    } catch (error) {
+      toast.error(error.message || 'Failed to approve category')
+    } finally {
+      setCategoryActionLoading(false)
+    }
+  }
+
+  const handleCategoryReject = async (categoryId) => {
+    setCategoryActionLoading(true)
+    try {
+      const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ status: 'rejected' }),
+      })
+      await parseDashboardResponse(response)
+      toast.success('Category rejected')
+      fetchAdminCategories()
+      fetchCategoryList()
+    } catch (error) {
+      toast.error(error.message || 'Failed to reject category')
+    } finally {
+      setCategoryActionLoading(false)
     }
   }
 
@@ -790,15 +949,46 @@ export default function DashboardPage() {
     }
 
     try {
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
       const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers,
       })
       await parseDashboardResponse(response)
       toast.success('Category deleted')
+      fetchAdminCategories()
       fetchCategoryList()
     } catch (error) {
       toast.error(error.message || 'Failed to delete category')
+    }
+  }
+
+  const handleCategoryRequest = async (event) => {
+    event.preventDefault()
+    if (!categoryRequestForm.name.trim()) {
+      toast.error('Category name is required')
+      return
+    }
+
+    setCategoryActionLoading(true)
+    try {
+      const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
+      const response = await fetch(`${API_BASE_URL}/api/categories`, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify(categoryRequestForm),
+      })
+      await parseDashboardResponse(response)
+      toast.success('Category request submitted')
+      setCategoryRequestForm({ name: '', description: '' })
+      setCategoryRequestOpen(false)
+      fetchCategoryList()
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit category request')
+    } finally {
+      setCategoryActionLoading(false)
     }
   }
 
@@ -825,7 +1015,7 @@ export default function DashboardPage() {
   }
 
   if (!hasHydrated) {
-    return <main className="p-6 text-sm text-muted-foreground">Loading dashboard...</main>
+    return <main className="p-6 text-sm text-slate-600 dark:text-slate-300">Loading dashboard...</main>
   }
 
   if (!isAuthenticated) {
@@ -833,20 +1023,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-base text-slate-900 dark:text-slate-50">
       <div className="grid min-h-screen w-full gap-5 px-4 py-6 md:px-6 lg:grid-cols-[280px_1fr] lg:gap-0 lg:px-0 lg:py-0">
         <aside className="flex h-full flex-col rounded-2xl border bg-card p-4 shadow-sm lg:sticky lg:top-0 lg:h-screen lg:rounded-none lg:border-y-0 lg:border-l-0 lg:border-r lg:shadow-none">
-          <h1 className="text-xl font-semibold">{dashboard.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{dashboard.subtitle}</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">{dashboard.title}</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{dashboard.subtitle}</p>
 
-          <div className="mt-4 rounded-xl border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Signed in as</p>
-            <p className="mt-1 font-medium">{user?.name || 'User'}</p>
-            <p className="text-sm capitalize text-muted-foreground">{user?.role || 'user'}</p>
-          </div>
-
-          <div className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Modules</p>
+          <div className="mt-5 flex-1 space-y-3 overflow-y-auto pr-1">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Modules</p>
             {modules.map((module) => {
               const ModuleIcon = moduleIconMap[module.id] || LayoutDashboard
 
@@ -854,14 +1038,14 @@ export default function DashboardPage() {
                 <button
                   key={module.id}
                   type="button"
-                  onClick={() => setActiveModuleId(module.id)}
-                  className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                  onClick={() => router.push(`/dashboard/${module.id}`)}
+                  className={`w-full rounded-2xl border px-4 py-3 text-left text-base font-medium transition-all duration-200 ${
                     activeModuleId === module.id
-                      ? 'border-primary/50 bg-primary/10 text-primary'
-                      : 'border-border bg-background hover:bg-muted/50'
+                      ? 'border-primary/50 bg-primary/10 text-primary shadow-[0_8px_24px_rgba(59,130,246,0.12)]'
+                      : 'border-border bg-background text-slate-900 dark:text-slate-100 hover:bg-muted/50'
                   }`}>
-                  <span className="flex items-center gap-2">
-                    <ModuleIcon className="h-4 w-4 shrink-0" />
+                  <span className="flex items-center gap-3">
+                    <ModuleIcon className="h-5 w-5 shrink-0" />
                     <span>{module.name}</span>
                   </span>
                 </button>
@@ -883,33 +1067,36 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        <section className="rounded-2xl border bg-card p-5 shadow-sm md:p-6 lg:my-6 lg:mr-6">
-          <div className="flex items-start justify-between gap-3">
+        <section className="rounded-2xl border bg-card p-5 shadow-sm md:p-6 lg:my-6 lg:mr-6 text-base text-slate-900 dark:text-slate-50">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-2xl font-semibold">{activeModule?.name || 'Overview'}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h2 className="text-3xl font-semibold text-slate-900 dark:text-white">{activeModule?.name || 'Overview'}</h2>
+              <p className="mt-2 text-base text-slate-600 dark:text-slate-400">
                 {activeModule?.description || 'Module details'}
               </p>
             </div>
-            <ThemeToggleButton />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => router.push('/')}>Home</Button>
+              <ThemeToggleButton />
+            </div>
           </div>
 
           {isProfileModule ? (
             <form className="mt-5 space-y-4" onSubmit={handleProfileSave}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block space-y-1 text-sm">
-                  <span className="text-muted-foreground">Name</span>
+                  <span className="text-slate-600 dark:text-slate-300">Name</span>
                   <input
                     type="text"
                     value={profileForm.name}
                     onChange={(event) => handleProfileChange('name', event.target.value)}
-                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                     required
                   />
                 </label>
 
                 <label className="block space-y-1 text-sm">
-                  <span className="flex items-center gap-2 text-muted-foreground">
+                  <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                     <Mail className="h-4 w-4" />
                     Email
                   </span>
@@ -917,13 +1104,13 @@ export default function DashboardPage() {
                     type="email"
                     value={profileForm.email}
                     onChange={(event) => handleProfileChange('email', event.target.value)}
-                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="you@example.com"
                   />
                 </label>
 
                 <label className="block space-y-1 text-sm">
-                  <span className="flex items-center gap-2 text-muted-foreground">
+                  <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                     <Phone className="h-4 w-4" />
                     Phone
                   </span>
@@ -931,18 +1118,18 @@ export default function DashboardPage() {
                     type="tel"
                     value={profileForm.phone}
                     onChange={(event) => handleProfileChange('phone', event.target.value)}
-                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="Optional"
                   />
                 </label>
 
                 <label className="block space-y-1 text-sm">
-                  <span className="text-muted-foreground">New Password</span>
+                  <span className="text-slate-600 dark:text-slate-300">New Password</span>
                   <input
                     type="password"
                     value={profileForm.password}
                     onChange={(event) => handleProfileChange('password', event.target.value)}
-                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background px-3 py-2 outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="Leave blank to keep current"
                     minLength={6}
                   />
@@ -950,7 +1137,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Any role can update personal profile from here.</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">Any role can update personal profile from here.</p>
                 <Button type="submit" disabled={authLoading}>
                   {authLoading ? 'Saving...' : 'Save Profile'}
                 </Button>
@@ -960,13 +1147,13 @@ export default function DashboardPage() {
             <div className="mt-5 space-y-4">
               <form className="flex flex-col gap-2 sm:flex-row" onSubmit={handleServiceSearch}>
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600 dark:text-slate-300" />
                   <input
                     type="text"
                     value={serviceSearchInput}
                     onChange={(event) => setServiceSearchInput(event.target.value)}
                     placeholder="Search your services by name, category, or area"
-                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
                 <Button type="submit" variant="outline">
@@ -1094,8 +1281,52 @@ export default function DashboardPage() {
                 </form>
               ) : null}
 
+              {serviceCreateOpen ? (
+                <div className="rounded-xl border p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-medium">Request Custom Category</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">Vendor category suggestions are submitted for admin review.</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCategoryRequestOpen((prev) => !prev)}>
+                      {categoryRequestOpen ? 'Close Request' : 'Open Request'}
+                    </Button>
+                  </div>
+                  {categoryRequestOpen ? (
+                    <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={handleCategoryRequest}>
+                      <input
+                        type="text"
+                        value={categoryRequestForm.name}
+                        onChange={(event) => setCategoryRequestForm((prev) => ({ ...prev, name: event.target.value }))}
+                        placeholder="Custom category name"
+                        className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={categoryRequestForm.description}
+                        onChange={(event) => setCategoryRequestForm((prev) => ({ ...prev, description: event.target.value }))}
+                        placeholder="Description for admin review"
+                        className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <div className="sm:col-span-2 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setCategoryRequestForm({ name: '', description: '' })}>
+                          Reset
+                        </Button>
+                        <Button type="submit" disabled={categoryActionLoading}>
+                          {categoryActionLoading ? 'Submitting...' : 'Submit Request'}
+                        </Button>
+                      </div>
+                    </form>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="rounded-xl border">
-                <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   <span>Name</span>
                   <span>Category</span>
                   <span>Area</span>
@@ -1104,9 +1335,9 @@ export default function DashboardPage() {
                 </div>
 
                 {serviceLoading ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">Loading services...</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">Loading services...</p>
                 ) : services.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No services found.</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">No services found.</p>
                 ) : (
                   services.map((service) => {
                     const isEditing = serviceEditId === service._id
@@ -1190,11 +1421,11 @@ export default function DashboardPage() {
                           <>
                             <div>
                               <p className="text-sm font-medium">{service.name}</p>
-                              <p className="text-xs text-muted-foreground">{service.category}</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-300">{service.category}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">{service.category}</p>
-                            <p className="text-sm text-muted-foreground">{service.area}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{service.category}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{service.area}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">
                               {service.location?.coordinates ? `${service.location.coordinates[1].toFixed(4)}, ${service.location.coordinates[0].toFixed(4)}` : 'No coords'}
                             </p>
                             <div className="flex justify-end gap-2">
@@ -1212,7 +1443,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   Showing {services.length} of {serviceMeta.total} services
                 </p>
                 <div className="flex gap-2">
@@ -1237,59 +1468,120 @@ export default function DashboardPage() {
             </div>
           ) : isCategoriesModule ? (
             <div className="mt-5 space-y-4">
-              <form className="rounded-xl border p-4" onSubmit={handleCategoryCreate}>
-                <p className="text-sm font-medium">Create Service Category</p>
+              <form
+                className="rounded-xl border p-4"
+                onSubmit={categoryEditId ? handleCategoryUpdate : handleCategoryCreate}
+              >
+                <p className="text-sm font-medium">
+                  {categoryEditId ? 'Edit Service Category' : 'Create Service Category'}
+                </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <input
                     type="text"
-                    value={categoryForm.name}
-                    onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
+                    value={categoryEditId ? categoryEditForm.name : categoryForm.name}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      if (categoryEditId) {
+                        setCategoryEditForm((prev) => ({ ...prev, name: value }))
+                      } else {
+                        setCategoryForm((prev) => ({ ...prev, name: value }))
+                      }
+                    }}
                     placeholder="Category name"
                     className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                     required
                   />
                   <input
                     type="text"
-                    value={categoryForm.description}
-                    onChange={(event) => setCategoryForm((prev) => ({ ...prev, description: event.target.value }))}
+                    value={categoryEditId ? categoryEditForm.description : categoryForm.description}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      if (categoryEditId) {
+                        setCategoryEditForm((prev) => ({ ...prev, description: value }))
+                      } else {
+                        setCategoryForm((prev) => ({ ...prev, description: value }))
+                      }
+                    }}
                     placeholder="Description"
                     className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                   />
+                  {categoryEditId ? (
+                    <select
+                      value={categoryEditForm.status}
+                      onChange={(event) =>
+                        setCategoryEditForm((prev) => ({ ...prev, status: event.target.value }))
+                      }
+                      className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  ) : null}
                 </div>
 
                 <div className="mt-3 flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setCategoryForm({ name: '', description: '', country: 'India' })}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (categoryEditId) {
+                        handleCategoryEditCancel()
+                      } else {
+                        setCategoryForm({ name: '', description: '', country: 'India' })
+                      }
+                    }}
+                  >
                     Reset
                   </Button>
-                  <Button type="submit">Save Category</Button>
+                  <Button type="submit" disabled={categoryActionLoading}>
+                    {categoryEditId ? 'Update Category' : 'Save Category'}
+                  </Button>
                 </div>
               </form>
 
               <div className="rounded-xl border">
-                <div className="grid grid-cols-[1.5fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="grid grid-cols-[1.5fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   <span>Name</span>
                   <span>Description</span>
                   <span>Status</span>
                   <span className="text-right">Actions</span>
                 </div>
 
-                {categoryLoading ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">Loading categories...</p>
-                ) : categories.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No categories available.</p>
+                {adminCategoryLoading ? (
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">Loading categories...</p>
+                ) : adminCategories.length === 0 ? (
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">No categories available.</p>
                 ) : (
-                  categories.map((category) => (
+                  adminCategories.map((category) => (
                     <div key={category._id} className="grid grid-cols-1 gap-3 border-b px-4 py-3 last:border-b-0 sm:grid-cols-[1.5fr_1fr_1fr_auto] sm:items-center">
                       <div>
                         <p className="text-sm font-medium">{category.name}</p>
-                        <p className="text-xs text-muted-foreground">{category.country}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          {category.requestedBy?.name ? `Requested by ${category.requestedBy.name}` : category.country}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{category.description || '—'}</p>
-                      <p className="text-sm text-muted-foreground">{category.isActive ? 'Active' : 'Inactive'}</p>
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleCategoryDelete(category._id)}>
-                          Delete
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{category.description || '—'}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 capitalize">{category.status}</p>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleCategoryEditStart(category)}>
+                          <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                          Edit
                         </Button>
+                        {category.status === 'pending' ? (
+                          <>
+                            <Button size="sm" variant="outline" disabled={categoryActionLoading} onClick={() => handleCategoryApprove(category._id)}>
+                              Approve
+                            </Button>
+                            <Button size="sm" variant="outline" disabled={categoryActionLoading} onClick={() => handleCategoryReject(category._id)}>
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => handleCategoryDelete(category._id)}>
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -1300,13 +1592,13 @@ export default function DashboardPage() {
             <div className="mt-5 space-y-4">
               <form className="flex flex-col gap-2 sm:flex-row" onSubmit={handlePendingSearch}>
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600 dark:text-slate-300" />
                   <input
                     type="text"
                     value={pendingQuery}
                     onChange={(event) => setPendingQuery(event.target.value)}
                     placeholder="Search pending services by name, vendor, or area"
-                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
                 <Button type="submit" variant="outline">
@@ -1323,7 +1615,7 @@ export default function DashboardPage() {
               </form>
 
               <div className="rounded-xl border">
-                <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   <span>Service</span>
                   <span>Vendor</span>
                   <span>Location</span>
@@ -1332,19 +1624,19 @@ export default function DashboardPage() {
                 </div>
 
                 {pendingLoading ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">Loading pending service requests...</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">Loading pending service requests...</p>
                 ) : pendingServices.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No pending services.</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">No pending services.</p>
                 ) : (
                   pendingServices.map((service) => (
                     <div key={service._id} className="grid grid-cols-1 gap-3 border-b px-4 py-3 last:border-b-0 sm:grid-cols-[1.2fr_1fr_1fr_1fr_auto] sm:items-center">
                       <div>
                         <p className="text-sm font-medium">{service.name}</p>
-                        <p className="text-xs text-muted-foreground">{service.vendorName}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">{service.vendorName}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{service.vendor?.email || service.vendorName || 'N/A'}</p>
-                      <p className="text-sm text-muted-foreground">{service.city}, {service.area}</p>
-                      <p className="text-sm text-muted-foreground">{service.category}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{service.vendor?.email || service.vendorName || 'N/A'}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{service.city}, {service.area}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{service.category}</p>
                       <div className="flex justify-end gap-2">
                         <Button size="sm" onClick={() => handleServiceApproval(service._id, true)}>
                           Approve
@@ -1359,7 +1651,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   Showing {pendingServices.length} of {pendingMeta.total} pending requests
                 </p>
                 <div className="flex gap-2">
@@ -1386,13 +1678,13 @@ export default function DashboardPage() {
             <div className="mt-5 space-y-4">
               <form className="flex flex-col gap-2 sm:flex-row" onSubmit={handleVendorSearch}>
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600 dark:text-slate-300" />
                   <input
                     type="text"
                     value={vendorSearchInput}
                     onChange={(event) => setVendorSearchInput(event.target.value)}
                     placeholder="Search by vendor name, email, phone"
-                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-offset-background placeholder:text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
                 <Button type="submit" variant="outline">
@@ -1543,7 +1835,7 @@ export default function DashboardPage() {
               ) : null}
 
               <div className="rounded-xl border">
-                <div className="grid grid-cols-[1.3fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="grid grid-cols-[1.3fr_1fr_1fr_auto] gap-3 border-b bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   <span>Name</span>
                   <span>Email</span>
                   <span>Phone</span>
@@ -1551,9 +1843,9 @@ export default function DashboardPage() {
                 </div>
 
                 {vendorLoading ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">Loading vendors...</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">Loading vendors...</p>
                 ) : vendors.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No vendors found.</p>
+                  <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-300">No vendors found.</p>
                 ) : (
                   vendors.map((vendor) => {
                     const isEditing = vendorEditId === vendor._id
@@ -1601,13 +1893,13 @@ export default function DashboardPage() {
                           <>
                             <div>
                               <p className="text-sm font-medium">{vendor.name}</p>
-                              <p className="text-xs text-muted-foreground">{vendor.businessName || vendor.role}</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-300">{vendor.businessName || vendor.role}</p>
                               {vendor.businessCategory ? (
-                                <p className="text-xs text-muted-foreground">{vendor.businessCategory}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300">{vendor.businessCategory}</p>
                               ) : null}
                             </div>
-                            <p className="text-sm text-muted-foreground">{vendor.email || 'N/A'}</p>
-                            <p className="text-sm text-muted-foreground">{vendor.phone || 'N/A'}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{vendor.email || 'N/A'}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{vendor.phone || 'N/A'}</p>
                             <div className="flex justify-end gap-2">
                               <Button size="sm" variant="outline" onClick={() => handleVendorEditStart(vendor)}>
                                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -1627,7 +1919,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   Showing {vendors.length} of {vendorMeta.total} vendors
                 </p>
                 <div className="flex gap-2">
@@ -1653,7 +1945,7 @@ export default function DashboardPage() {
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {(activeModule?.stats || []).map((item) => (
                   <div key={item.label} className="rounded-xl border bg-background p-4">
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">{item.label}</p>
                     <p className="mt-1 text-xl font-semibold">{item.value}</p>
                   </div>
                 ))}
@@ -1661,14 +1953,14 @@ export default function DashboardPage() {
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border bg-background p-4">
-                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <p className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                     <Mail className="h-4 w-4" />
                     Email
                   </p>
                   <p className="mt-1 font-medium">{user?.email || 'Not provided'}</p>
                 </div>
                 <div className="rounded-xl border bg-background p-4">
-                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <p className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                     <Phone className="h-4 w-4" />
                     Phone
                   </p>
