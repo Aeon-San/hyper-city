@@ -44,6 +44,18 @@ const serviceSchema = new mongoose.Schema(
             trim: true,
             index: true,
         },
+        country: {
+            type: String,
+            trim: true,
+            default: "India",
+            index: true,
+        },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "approved",
+            index: true,
+        },
         address: {
             type: String,
             trim: true,

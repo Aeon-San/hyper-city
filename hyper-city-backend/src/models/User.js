@@ -21,6 +21,34 @@ const userSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
+        businessName: {
+            type: String,
+            trim: true,
+        },
+        businessCategory: {
+            type: String,
+            trim: true,
+        },
+        businessAddress: {
+            type: String,
+            trim: true,
+        },
+        businessCity: {
+            type: String,
+            trim: true,
+        },
+        businessArea: {
+            type: String,
+            trim: true,
+        },
+        businessDescription: {
+            type: String,
+            trim: true,
+        },
+        website: {
+            type: String,
+            trim: true,
+        },
         password: {
             type: String,
             required: true,
@@ -36,21 +64,18 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-userSchema.pre("validate", function (next) {
+userSchema.pre("validate", function () {
     if (!this.email && !this.phone) {
         this.invalidate("email", "Either email or phone is required");
     }
-
-    next();
 });
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
     if (!this.isModified("password")) {
-        return next();
+        return;
     }
 
     this.password = await bcrypt.hash(this.password, 10);
-    next();
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
