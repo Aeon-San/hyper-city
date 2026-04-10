@@ -30,6 +30,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/ubuntu/aeon/api.aeonsan.xyz
+            cd /home/ubuntu/aeon/hyper-city
             git pull origin main
             docker compose up --build -d

@@ -3,7 +3,7 @@ services:
     build: ./hyper-city-frontend
     container_name: hypercity-frontend
     ports:
-      - "3123:3000"
+      - "32345:3000"
     networks:
       - public
 
@@ -11,7 +11,7 @@ services:
     build: ./hyper-city-backend
     container_name: hypercity-backend
     ports:
-      - "5123:5000"
+      - "52345:10000"
     networks:
       - public
 
