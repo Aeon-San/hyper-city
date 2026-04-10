@@ -1,0 +1,39 @@
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import connectDB from "./database/dbconnection.js";
+import authRoutes from "./routes/authRoutes.js";
+import serviceRoutes from "./routes/serviceRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+
+dotenv.config();
+connectDB();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL || true,
+        credentials: true,
+    })
+);
+app.use(express.json());
+app.use(cookieParser());
+
+app.get("/api/health", (_req, res) => {
+    res.status(200).json({ success: true, message: "Server is healthy" });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/reviews", reviewRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
