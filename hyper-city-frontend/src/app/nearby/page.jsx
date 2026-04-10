@@ -11,7 +11,7 @@ const NearbyMap = dynamic(() => import("@/components/nearby-map"), {
   ssr: false,
 })
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "")
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "/api").replace(/\/$/, "")
 
 const categoryItems = [
   { icon: MapPin, label: "All" },

@@ -28,7 +28,7 @@ import {
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '')
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '/api').replace(/\/$/, '')
 
 // Mock verified providers data with ratings
 const verifiedProvidersData = [

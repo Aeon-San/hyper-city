@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { HeroHeader } from "@/components/header";
 import { Search, ShieldCheck, MapPin, BriefcaseBusiness, GraduationCap, UtensilsCrossed, Wrench } from "lucide-react";
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "/api").replace(/\/$/, "");
 
 const categoryItems = [
   { icon: ShieldCheck, label: "All" },

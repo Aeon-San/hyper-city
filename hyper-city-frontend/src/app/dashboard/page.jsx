@@ -26,7 +26,7 @@ import { ThemeToggleButton } from '@/components/theme-toggle-button'
 import { useAuthStore } from '@/store/use-auth-store'
 import { toast } from 'sonner'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '')
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '/api').replace(/\/$/, '')
 
 const parseDashboardResponse = async (response) => {
   let payload = {}

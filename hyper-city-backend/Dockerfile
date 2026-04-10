@@ -1,3 +1,4 @@
+
 FROM node:20-alpine
 
 WORKDIR /app
@@ -12,4 +13,4 @@ ENV PORT=10000
 
 EXPOSE 10000
 
-CMD ["pm2-runtime", "ecosystem.config.js"]
+CMD ["node", "src/index.js"]

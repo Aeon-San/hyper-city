@@ -7,7 +7,7 @@
   "type": "module",
   "main": " src/index.js",
   "scripts": {
-    "start": "pm2-runtime ecosystem.config.js",
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
