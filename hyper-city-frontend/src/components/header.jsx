@@ -55,7 +55,7 @@ export const HeroHeader = () => {
                                         'text-xl font-semibold transition-colors',
                                         scrolled ? 'text-foreground' : 'text-white'
                                     )}>
-                                    Hyper City
+                                    City Saathi
                                 </span>
                             </Link>
 

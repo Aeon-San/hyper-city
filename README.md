@@ -1,6 +1,6 @@
-# Hyper City
+# City Saathi
 
-Hyper City is a hyper-local city services and business discovery platform that helps users find nearby service providers and local businesses using GPS-based location data. It also empowers neighborhood vendors to increase visibility, connect with customers, and grow through an easy-to-use digital storefront.
+City Saathi is a local city services and business discovery platform that helps users find nearby service providers and local businesses using location-aware discovery. It also empowers neighborhood vendors to increase visibility, connect with customers, and grow through an easy-to-use digital storefront.
 
 ## Objective
 
@@ -36,9 +36,9 @@ Build a centralized digital platform to:
 - Contact and booking options for nearby providers
 - Responsive UI for mobile and desktop use
 
-## Why Hyper City?
+## Why City Saathi?
 
-Hyper City is designed to bring local commerce online and make it easy for city residents to find trusted services near them. Whether someone needs a plumber, a tutor, or a neighborhood cafe, Hyper City simplifies the search and strengthens community businesses.
+City Saathi is designed to bring local commerce online and make it easy for city residents to find trusted services near them. Whether someone needs a plumber, a tutor, or a neighborhood cafe, City Saathi simplifies the search and strengthens community businesses.
 
 ## How to Run
 

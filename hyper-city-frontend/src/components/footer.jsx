@@ -28,7 +28,7 @@ export default function FooterSection() {
         <footer className="border-t bg-background py-16 text-foreground md:py-24">
             <div className="mx-auto max-w-5xl px-6">
                 <Link href="/" aria-label="go home" className="mx-auto block size-fit mb-8">
-                    <span className="text-3xl font-bold text-black dark:text-white">Hyper City</span>
+                    <span className="text-3xl font-bold text-black dark:text-white">City Saathi</span>
                 </Link>
 
                 <div className="my-8 flex flex-wrap justify-center gap-8 text-lg font-medium">
@@ -111,7 +111,7 @@ export default function FooterSection() {
                         </svg>
                     </Link>
                 </div>
-                <span className="text-black/70 dark:text-white/80 block text-center text-base font-medium"> © {new Date().getFullYear()} Hyper City, All rights reserved</span>
+                <span className="text-black/70 dark:text-white/80 block text-center text-base font-medium"> © {new Date().getFullYear()} City Saathi, All rights reserved</span>
             </div>
         </footer>
     );

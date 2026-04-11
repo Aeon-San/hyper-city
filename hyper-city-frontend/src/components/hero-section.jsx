@@ -200,7 +200,7 @@ export default function HeroSection() {
             <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
               <div>
                 <h2 className="text-4xl font-bold">Solution</h2>
-                <p className="mt-4 text-lg text-slate-300">Hyper City connects users with trusted local services in one place, giving neighborhood businesses a stronger digital presence.</p>
+                <p className="mt-4 text-lg text-slate-300">City Saathi connects users with trusted local services in one place, giving neighborhood businesses a stronger digital presence.</p>
                 <ul className="mt-8 space-y-4 text-slate-300">
                   <li>• GPS-based discovery for nearby service providers</li>
                   <li>• Business listing and profile management</li>
@@ -239,8 +239,8 @@ export default function HeroSection() {
 
         <section id="about" className="bg-background py-24 text-white">
           <div className="mx-auto max-w-7xl px-6 lg:px-12">
-            <h2 className="text-4xl font-bold">About Hyper City</h2>
-            <p className="mt-4 max-w-3xl text-lg text-slate-300">Hyper City is a hyper-local discovery platform built for city residents and neighborhood businesses. It brings service discovery, listings, and customer connection into a single digital experience.</p>
+            <h2 className="text-4xl font-bold">About City Saathi</h2>
+            <p className="mt-4 max-w-3xl text-lg text-slate-300">City Saathi is a local discovery platform built for city residents and neighborhood businesses. It brings service discovery, listings, and customer connection into a single digital experience.</p>
           </div>
         </section>
       </main>

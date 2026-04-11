@@ -1270,7 +1270,7 @@ export default function VerifiedProvidersPage() {
           >
             <h2 className="text-3xl font-bold text-primary-foreground">Ready to book a service?</h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-primary-foreground/80">
-              Select a provider above and contact them directly, or use Hyper City to browse more services in your area.
+              Select a provider above and contact them directly, or use City Saathi to browse more services in your area.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button asChild size="lg" variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">

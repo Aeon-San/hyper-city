@@ -7,7 +7,7 @@ export default function Features() {
                 <div
                     className="relative z-10 mx-auto max-w-xl space-y-6 text-center md:space-y-12">
                     <h2 className="text-balance text-5xl md:text-6xl font-bold text-black dark:text-white">Discover Local Services Instantly</h2>
-                    <p className="text-lg text-black/70 dark:text-white/80 font-medium">Hyper City connects you with trusted local service providers, from electricians to tutors, all powered by GPS-based discovery and real-time listings.</p>
+                    <p className="text-lg text-black/70 dark:text-white/80 font-medium">City Saathi connects you with trusted local service providers, from electricians to tutors, with location-aware discovery and real-time listings.</p>
                 </div>
 
                 <div

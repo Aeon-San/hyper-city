@@ -105,7 +105,7 @@ const HeroSection = () => {
         className="bg-[url(https://images.shadcnspace.com/assets/backgrounds/real-estate-bg.webp)] bg-contain bg-center bg-repeat overflow-hidden xl:overflow-visible relative flex flex-col xl:h-screen justify-center z-10 xl:gap-0 gap-12">
         <div className="max-w-7xl mx-auto sm:px-16 px-4 w-full xl:pt-0 pt-32">
           <div className="relative text-white text-start z-30">
-            <p className="text-inherit text-xs font-normal">Hyperlocal Discovery Platform</p>
+            <p className="text-inherit text-xs font-normal">City Saathi · Local discovery</p>
             <h1
               className="text-inherit text-5xl! md:text-6xl! lg:text-7xl! font-normal! max-w-xl mt-2 mb-6">
               Find <span className="font-semibold!">Local Services</span>

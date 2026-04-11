@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Hyper City",
-  description: "Hyper-local city services and business discovery platform",
+  title: "City Saathi",
+  description: "Local city services and business discovery — find trusted providers near you.",
 };
 
 export default function RootLayout({ children }) {

@@ -151,7 +151,7 @@ export const useAuthStore = create(
       },
     }),
     {
-      name: 'hypercity-auth',
+      name: 'citysaathi-auth',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,

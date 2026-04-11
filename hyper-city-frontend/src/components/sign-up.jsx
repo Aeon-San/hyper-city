@@ -59,7 +59,7 @@ export default function SignupPage() {
             <nav className="absolute inset-x-0 top-0 z-20">
                 <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 md:px-8">
                     <Link href="/" className="text-base font-semibold text-white md:text-lg">
-                        Hyper City
+                        City Saathi
                     </Link>
                     <div className="flex items-center gap-2 md:gap-3">
                         <Link href="/" className="hidden text-sm text-white/90 hover:text-white md:block">
@@ -84,8 +84,8 @@ export default function SignupPage() {
                         <Link href="/" aria-label="go home" className="mx-auto block w-fit">
                             <LogoIcon />
                         </Link>
-                        <h1 className="mb-1 mt-4 text-3xl font-bold text-black dark:text-white">Create a Hyper City Account</h1>
-                        <p className="mt-2 text-base text-black/70 dark:text-white/80">Join Hyper City to discover trusted local services.</p>
+                        <h1 className="mb-1 mt-4 text-3xl font-bold text-black dark:text-white">Create a City Saathi Account</h1>
+                        <p className="mt-2 text-base text-black/70 dark:text-white/80">Join City Saathi to discover trusted local services.</p>
                     </div>
 
                     <div className="mt-6 space-y-6">

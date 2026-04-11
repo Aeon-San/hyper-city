@@ -1,7 +1,7 @@
 {
-  "name": "hyper-city",
+  "name": "citysaathi",
   "version": "1.0.0",
-  "description": "Hyper City is a web application that provides users with information about nearby places, including restaurants, cafes, parks, and more. It allows users to explore their surroundings and discover new places to visit.",
+  "description": "City Saathi — local city services and business discovery (frontend + backend).",
   "license": "ISC",
   "author": "Achintya",
   "type": "module",
