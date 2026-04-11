@@ -710,6 +710,13 @@ export default function DashboardPage({ selectedModuleId = null }) {
   }
 
   const handleServiceLocationPick = () => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      toast.error(
+        'GPS needs HTTPS (or localhost). Open the dashboard on your HTTPS domain, or type lat/lng manually.',
+        { duration: 6000 }
+      )
+      return
+    }
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported in your browser.')
       return
@@ -765,7 +772,10 @@ export default function DashboardPage({ selectedModuleId = null }) {
         }
       },
       () => {
-        toast.error('Unable to access location. Please allow permission.')
+        toast.error(
+          'Unable to access location. Allow permission, or use HTTPS — http:// with an IP often blocks GPS.',
+          { duration: 5000 }
+        )
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )

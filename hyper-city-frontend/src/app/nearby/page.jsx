@@ -4,9 +4,14 @@ import dynamic from "next/dynamic"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { HeroHeader } from "@/components/header"
 import { MapPin, Search, ShieldCheck } from "lucide-react"
 import { getApiBaseUrl } from "@/lib/api-base"
+import {
+  GEO_BLOCK_MESSAGES,
+  getGeolocationBlockReason,
+} from "@/lib/geolocation-context"
 
 const NearbyMap = dynamic(() => import("@/components/nearby-map"), {
   ssr: false,
@@ -101,15 +106,23 @@ export default function NearbyPage() {
   const [coords, setCoords] = useState(null)
   const [services, setServices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  /** Why GPS is not used (HTTPS / browser) — not an API failure */
+  const [geoHint, setGeoHint] = useState("")
+  /** Permission denied or API errors */
   const [error, setError] = useState("")
-  const [locationRequired, setLocationRequired] = useState(true)
+  const [browseCityInput, setBrowseCityInput] = useState("")
+  const [browseCity, setBrowseCity] = useState("")
 
   const displayedServices = useMemo(() => services, [services])
 
   useEffect(() => {
-    if (!("geolocation" in navigator)) {
-      setError("Geolocation is not supported by your browser. Enable location to view nearby services.")
-      setLocationRequired(true)
+    const block = getGeolocationBlockReason()
+    if (block === "insecure") {
+      setGeoHint(GEO_BLOCK_MESSAGES.insecure)
+      return
+    }
+    if (block === "unsupported") {
+      setGeoHint(GEO_BLOCK_MESSAGES.unsupported)
       return
     }
 
@@ -117,15 +130,14 @@ export default function NearbyPage() {
       ({ coords: geo }) => {
         setCoords({ lat: geo.latitude, lng: geo.longitude })
         setError("")
-        setLocationRequired(false)
+        setGeoHint("")
       },
       (err) => {
         setCoords(null)
-        setLocationRequired(true)
         if (err.code === err.PERMISSION_DENIED) {
-          setError("Location access denied. Please allow location to view nearby services.")
+          setGeoHint("Location access denied. You can still browse by city below.")
         } else {
-          setError("Enable location access to see nearby services.")
+          setGeoHint("Could not read your position. Try again or use city search below.")
         }
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -134,7 +146,10 @@ export default function NearbyPage() {
 
   useEffect(() => {
     const fetchNearby = async () => {
-      if (!coords) return
+      if (!coords && !browseCity.trim()) {
+        setServices([])
+        return
+      }
 
       setIsLoading(true)
       setError("")
@@ -143,9 +158,12 @@ export default function NearbyPage() {
         const params = new URLSearchParams({
           country: "India",
           search: "",
-          limit: "24",
+          limit: "48",
           ...(selectedCategory !== "All" ? { category: selectedCategory } : {}),
         })
+        if (browseCity.trim()) {
+          params.set("city", browseCity.trim())
+        }
 
         const response = await fetch(`${API_BASE_URL}/services/listings?${params.toString()}`)
         const payload = await response.json()
@@ -155,23 +173,32 @@ export default function NearbyPage() {
         }
 
         const serviceData = Array.isArray(payload.data) ? payload.data : []
-        const servicesWithDistance = serviceData
-          .map((service) => {
-            const coordinates = service.location?.coordinates
-            const distanceKm = coordinates
-              ? getDistanceKm(coords.lat, coords.lng, coordinates[1], coordinates[0])
-              : null
 
-            return {
+        if (coords) {
+          const servicesWithDistance = serviceData
+            .map((service) => {
+              const coordinates = service.location?.coordinates
+              const distanceKm = coordinates
+                ? getDistanceKm(coords.lat, coords.lng, coordinates[1], coordinates[0])
+                : null
+
+              return {
+                ...service,
+                distanceKm,
+              }
+            })
+            .filter((service) => service.distanceKm !== null && service.distanceKm <= 10)
+
+          servicesWithDistance.sort((a, b) => a.distanceKm - b.distanceKm)
+          setServices(servicesWithDistance)
+        } else {
+          setServices(
+            serviceData.map((service) => ({
               ...service,
-              distanceKm,
-            }
-          })
-          .filter((service) => service.distanceKm !== null && service.distanceKm <= 10)
-
-        servicesWithDistance.sort((a, b) => a.distanceKm - b.distanceKm)
-
-        setServices(servicesWithDistance)
+              distanceKm: null,
+            }))
+          )
+        }
       } catch (err) {
         setError(err.message || "Unable to fetch nearby services.")
         setServices([])
@@ -181,7 +208,7 @@ export default function NearbyPage() {
     }
 
     fetchNearby()
-  }, [coords, selectedCategory])
+  }, [coords, browseCity, selectedCategory])
 
   return (
     <>
@@ -193,9 +220,54 @@ export default function NearbyPage() {
             <div className="rounded-3xl border border-border/70 bg-background p-4">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Your Location</p>
               <p className="mt-2 text-xs text-black/70 dark:text-white/80">
-                {coords ? `✓ Enabled (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})` : "❌ Location disabled or permission denied."}
+                {coords
+                  ? `✓ GPS on (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`
+                  : "GPS off — use HTTPS for automatic location, or search by city."}
               </p>
+              {geoHint ? (
+                <p className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-200">{geoHint}</p>
+              ) : null}
               {error ? <p className="mt-2 text-xs text-destructive font-semibold">{error}</p> : null}
+              {!coords ? (
+                <div className="mt-4 space-y-2 border-t border-border/60 pt-4">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">Browse by city</p>
+                  <Input
+                    placeholder="e.g. Delhi, Mumbai, Bangalore"
+                    value={browseCityInput}
+                    onChange={(e) => setBrowseCityInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        setBrowseCity(browseCityInput.trim())
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    className="w-full"
+                    variant="secondary"
+                    onClick={() => setBrowseCity(browseCityInput.trim())}
+                  >
+                    Show services
+                  </Button>
+                  {browseCity ? (
+                    <p className="text-[11px] text-muted-foreground">
+                      Showing listings for <span className="font-semibold text-foreground">{browseCity}</span>
+                      .{" "}
+                      <button
+                        type="button"
+                        className="underline underline-offset-2 hover:text-foreground"
+                        onClick={() => {
+                          setBrowseCity("")
+                          setBrowseCityInput("")
+                        }}
+                      >
+                        Clear city
+                      </button>
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             <div className="rounded-3xl border border-border/70 bg-background p-4">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Categories</p>
@@ -257,25 +329,40 @@ export default function NearbyPage() {
                     </h2>
                   </div>
                   <div className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs text-slate-700 dark:text-slate-200 font-semibold">
-                    {coords ? "Live results" : "Location required"}
+                    {coords ? "GPS results" : browseCity ? `City: ${browseCity}` : "City or GPS"}
                   </div>
                 </div>
-                {!coords && (
-                  <div className="mt-3 rounded-3xl border border-border/70 bg-slate-50 dark:bg-slate-800 p-4 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                    Enable location access to view nearby service listings based on your coordinates.
+                {!coords && !browseCity && (
+                  <div className="mt-3 rounded-3xl border border-border/70 bg-slate-50 p-4 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    On <span className="font-semibold">http://</span> with an IP address, browsers do not allow GPS. Use{" "}
+                    <span className="font-semibold">HTTPS</span> on your domain, or type a city in the sidebar.
                   </div>
                 )}
               </div>
 
+              {error ? (
+                <div className="rounded-3xl border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive font-medium">
+                  {error}
+                </div>
+              ) : null}
+
+              {isLoading && displayedServices.length === 0 && (coords || browseCity) ? (
+                <div className="grid gap-4">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="rounded-3xl border border-border/70 bg-white p-6 shadow-sm dark:bg-card">
+                      <div className="space-y-4 animate-pulse">
+                        <div className="h-6 w-1/3 rounded bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-4 w-1/2 rounded bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
               {displayedServices.length > 0 ? (
                 <div className="grid gap-4">
-                  {error && (
-                    <div className="rounded-3xl border border-destructive/50 bg-destructive/10 p-6 text-sm text-destructive font-semibold">
-                      <p className="mb-3">{error}</p>
-                      <p className="text-xs font-medium">Showing demo listings instead while we fix the location service...</p>
-                    </div>
-                  )}
-                  {(isLoading ? Array.from({ length: 3 }) : displayedServices.length > 0 ? displayedServices : (error ? dummyServicesByCategory[selectedCategory] || [] : [])).map((service, index) => (
+                  {(isLoading ? Array.from({ length: 3 }) : displayedServices).map((service, index) => (
                     <div key={service?._id || index} className="rounded-3xl border border-border/70 bg-white p-6 shadow-sm">
                       {isLoading ? (
                         <div className="space-y-4 animate-pulse">
@@ -291,8 +378,8 @@ export default function NearbyPage() {
                               <p className="text-xl font-bold text-slate-900">{service.name}</p>
                               <p className="mt-1 text-sm font-semibold text-muted-foreground">Category: {service.category || "General"}</p>
                             </div>
-                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                              {formatDistance(service.distanceKm)}
+                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-200">
+                              {service.distanceKm != null ? formatDistance(service.distanceKm) : "City list"}
                             </span>
                           </div>
                           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -313,10 +400,19 @@ export default function NearbyPage() {
                   ))}
                 </div>
               ) : (
-                !isLoading && !error && (
-                  <div className="rounded-3xl border border-border/70 bg-slate-50 dark:bg-slate-800 p-6 text-center">
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No {selectedCategory.toLowerCase()} services found within 10km radius.</p>
-                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">Try selecting a different category or check back later.</p>
+                !isLoading &&
+                !error && (
+                  <div className="rounded-3xl border border-border/70 bg-slate-50 p-6 text-center dark:bg-slate-800">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {coords
+                        ? `No ${selectedCategory.toLowerCase()} services within 10 km.`
+                        : browseCity
+                          ? `No listings matched in ${browseCity} for this filter.`
+                          : "Enter a city in the sidebar (or enable GPS over HTTPS) to see services."}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                      Try another category or city.
+                    </p>
                   </div>
                 )
               )}
