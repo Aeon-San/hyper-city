@@ -11,7 +11,7 @@ services:
     build: ./hyper-city-backend
     container_name: hypercity-backend
     expose:
-      - "10000"
+      - "10001"
     networks:
       - public
 

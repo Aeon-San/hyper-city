@@ -27,8 +27,9 @@ import {
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
+import { getApiBaseUrl } from '@/lib/api-base'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '/api').replace(/\/$/, '')
+const API_BASE_URL = getApiBaseUrl()
 
 // Mock verified providers data with ratings
 const verifiedProvidersData = [

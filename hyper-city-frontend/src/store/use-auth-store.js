@@ -2,8 +2,9 @@
 
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { getApiBaseUrl } from '@/lib/api-base'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '/api').replace(/\/$/, '')
+const API_BASE_URL = getApiBaseUrl()
 
 const parseResponse = async (response) => {
   let payload = {}

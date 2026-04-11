@@ -8,12 +8,12 @@ export default {
       exec_mode: "fork",
       env: {
         NODE_ENV: "development",
-        PORT: 10000,
+        PORT: 10001,
         HOST: "localhost",
       },
       env_production: {
         NODE_ENV: "production",
-        PORT: 10000,
+        PORT: 10001,
         HOST: "0.0.0.0",
       },
       watch: false,

@@ -25,8 +25,9 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggleButton } from '@/components/theme-toggle-button'
 import { useAuthStore } from '@/store/use-auth-store'
 import { toast } from 'sonner'
+import { getApiBaseUrl } from '@/lib/api-base'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '/api').replace(/\/$/, '')
+const API_BASE_URL = getApiBaseUrl()
 
 const parseDashboardResponse = async (response) => {
   let payload = {}

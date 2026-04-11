@@ -6,12 +6,13 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { HeroHeader } from "@/components/header"
 import { MapPin, Search, ShieldCheck } from "lucide-react"
+import { getApiBaseUrl } from "@/lib/api-base"
 
 const NearbyMap = dynamic(() => import("@/components/nearby-map"), {
   ssr: false,
 })
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "/api").replace(/\/$/, "")
+const API_BASE_URL = getApiBaseUrl()
 
 const categoryItems = [
   { icon: MapPin, label: "All" },
