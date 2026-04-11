@@ -1,5 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import generateToken from "../utils/generateToken.js";
+import { getAuthCookieOptions } from "../utils/authCookieOptions.js";
 import {
     registerUser,
     loginUser,
@@ -55,11 +56,13 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (_req, res) => {
+    const cookieOpts = getAuthCookieOptions();
     res.cookie("token", "", {
         httpOnly: true,
         expires: new Date(0),
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: cookieOpts.secure,
+        sameSite: cookieOpts.sameSite,
+        path: cookieOpts.path,
     });
 
     res.status(200).json({

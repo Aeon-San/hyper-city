@@ -1,12 +1,13 @@
 'use client'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Menu, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggleButton } from '@/components/theme-toggle-button'
 import React from 'react'
 import { useScroll, motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/use-auth-store'
+import { SmartSearchDialog } from '@/components/smart-search-dialog'
 
 const menuItems = [
     { name: 'Features', href: '#features' },
@@ -18,6 +19,7 @@ const menuItems = [
 export const HeroHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
     const [scrolled, setScrolled] = React.useState(false)
+    const [smartSearchOpen, setSmartSearchOpen] = React.useState(false)
     const { scrollYProgress } = useScroll()
     const user = useAuthStore((state) => state.user)
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -33,6 +35,7 @@ export const HeroHeader = () => {
 
     return (
         <header>
+            <SmartSearchDialog open={smartSearchOpen} onOpenChange={setSmartSearchOpen} />
             <nav data-state={menuState && 'active'} className="fixed z-20 w-full pt-2">
                 <div
                     className={cn(
@@ -72,7 +75,19 @@ export const HeroHeader = () => {
                                     )} />
                             </button>
 
-                            <div className="hidden lg:block">
+                            <div className="hidden lg:flex lg:items-center lg:gap-8">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className={cn(
+                                        'rounded-full',
+                                        scrolled ? 'text-foreground hover:bg-muted' : 'text-white hover:bg-white/10'
+                                    )}
+                                    aria-label="Open smart search"
+                                    onClick={() => setSmartSearchOpen(true)}>
+                                    <Search className="size-5" />
+                                </Button>
                                 <ul className="flex gap-8 text-sm">
                                     {menuItems.map((item, index) => (
                                         <li key={index}>
@@ -95,6 +110,18 @@ export const HeroHeader = () => {
                         <div
                             className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
                             <div className="lg:hidden">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="mb-4 w-full justify-center gap-2"
+                                    onClick={() => {
+                                        setSmartSearchOpen(true)
+                                        setMenuState(false)
+                                    }}>
+                                    <Search className="size-4" />
+                                    Smart Search
+                                </Button>
                                 <ul className="space-y-6 text-base">
                                     {menuItems.map((item, index) => (
                                         <li key={index}>

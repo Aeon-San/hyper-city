@@ -4,8 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SmartSearchDialog } from "@/components/smart-search-dialog";
 import SeamlessCloud from "@/components/shadcn-space/blocks/hero-02/seamless-cloud";
 import { Marquee } from "@/components/shadcn-space/animations/marquee";
 import { BriefcaseBusiness, GraduationCap, MapPin, Search, ShieldCheck, Users, UtensilsCrossed, Wrench } from "lucide-react";
@@ -86,7 +85,6 @@ const HeroSection = () => {
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
   const [selectedCategory, setSelectedCategory] = useState(categoryItems[0].label);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
 
   const displayedServices = useMemo(() => {
     return dummyServicesByCategory[selectedCategory] || [];
@@ -243,40 +241,7 @@ const HeroSection = () => {
         </>
       </div>
 
-      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-        <DialogContent className="min-h-80 sm:max-w-xl md:max-w-2xl bg-background p-6 text-foreground">
-          <DialogHeader className="gap-3">
-            <DialogTitle className="text-xl">Smart Search</DialogTitle>
-            <DialogDescription>
-              Search local services by name, category, or area.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Try: electrician, tutor, cafe, MG Road"
-            />
-            <div className="flex flex-wrap gap-3">
-              {categoryItems.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    setSearchText(item.label);
-                    setSelectedCategory(item.label);
-                  }}
-                  className="rounded-full border border-border bg-muted/40 px-4 py-1.5 text-sm text-foreground hover:bg-muted">
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Dark and light mode are automatically supported in this modal.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SmartSearchDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen} />
     </section>
   );
 };

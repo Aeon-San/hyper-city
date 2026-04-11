@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HeroHeader } from "@/components/header";
-import { Search, ShieldCheck, MapPin, BriefcaseBusiness, GraduationCap, UtensilsCrossed, Wrench } from "lucide-react";
+import { Search, ShieldCheck, BriefcaseBusiness, GraduationCap, UtensilsCrossed, Wrench } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api-base";
 
 const API_BASE_URL = getApiBaseUrl();
@@ -19,13 +20,25 @@ const categoryItems = [
   { icon: ShieldCheck, label: "Trusted" },
 ];
 
-export default function ListingsPage() {
+function ListingsPageInner() {
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [city, setCity] = useState("");
   const [search, setSearch] = useState("");
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null) setSearch(q);
+    const cat = searchParams.get("category");
+    if (cat && categoryItems.some((c) => c.label === cat)) {
+      setSelectedCategory(cat);
+    }
+    const cy = searchParams.get("city");
+    if (cy !== null) setCity(cy);
+  }, [searchParams]);
 
   const displayedResults = useMemo(() => services, [services]);
 
@@ -233,5 +246,24 @@ export default function ListingsPage() {
       </div>
     </main>
     </>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <>
+          <HeroHeader />
+          <main className="min-h-screen w-full bg-background px-4 pt-24 pb-10 md:px-6 lg:px-10">
+            <div className="mx-auto max-w-5xl space-y-4">
+              <div className="h-28 animate-pulse rounded-3xl bg-muted" />
+              <div className="h-72 animate-pulse rounded-3xl bg-muted" />
+            </div>
+          </main>
+        </>
+      }>
+      <ListingsPageInner />
+    </Suspense>
   );
 }
