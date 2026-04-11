@@ -12,6 +12,9 @@ services:
     container_name: hypercity-backend
     env_file:
       - ./hyper-city-backend/.env
+    # .env often has PORT=5000 for local dev; must match nginx upstream (10001).
+    environment:
+      PORT: "10001"
     expose:
       - "10001"
     networks:
