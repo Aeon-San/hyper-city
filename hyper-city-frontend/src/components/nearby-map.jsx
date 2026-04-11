@@ -1,21 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { Fragment, useEffect, useState } from "react"
+import { MapContainer, TileLayer, Popup, Polyline, CircleMarker, useMap } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 
 const defaultLocation = { lat: 28.6139, lng: 77.2090 }
-
-const markerIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-})
 
 function MapUpdater({ coords }) {
   const map = useMap()
@@ -24,6 +14,28 @@ function MapUpdater({ coords }) {
     if (!coords) return
     map.setView([coords.lat, coords.lng], 13)
   }, [coords, map])
+
+  return null
+}
+
+function BoundsUpdater({ coords, services }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!coords) return
+
+    const points = [[coords.lat, coords.lng]]
+    services.forEach((service) => {
+      const coordinates = service.location?.coordinates
+      if (coordinates) {
+        points.push([coordinates[1], coordinates[0]])
+      }
+    })
+
+    if (points.length > 1) {
+      map.fitBounds(points, { padding: [40, 40] })
+    }
+  }, [coords, services, map])
 
   return null
 }
@@ -54,25 +66,41 @@ export default function NearbyMap({ coords, services }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapUpdater coords={coords} />
+      <BoundsUpdater coords={coords} services={services} />
       {coords && (
-        <Marker position={[coords.lat, coords.lng]} icon={markerIcon}>
+        <CircleMarker
+          center={[coords.lat, coords.lng]}
+          radius={9}
+          pathOptions={{ color: "#2563eb", fillColor: "#60a5fa", fillOpacity: 0.9, weight: 3 }}
+        >
           <Popup>Your current location</Popup>
-        </Marker>
+        </CircleMarker>
       )}
       {services.map((service) => {
         const coordinates = service.location?.coordinates
         if (!coordinates) return null
+        const vendorPoint = [coordinates[1], coordinates[0]]
+        const userPoint = coords ? [coords.lat, coords.lng] : null
         return (
-          <Marker key={service._id} position={[coordinates[1], coordinates[0]]} icon={markerIcon}>
-            <Popup>
-              <div className="space-y-1 text-sm">
-                <p className="font-semibold">{service.name}</p>
-                <p>{service.vendorName || "Local vendor"}</p>
-                <p>{service.area}, {service.city}</p>
-                <p>{service.distanceKm != null ? `${service.distanceKm.toFixed(1)} km away` : 'Distance unknown'}</p>
-              </div>
-            </Popup>
-          </Marker>
+          <Fragment key={service._id}>
+            {userPoint && (
+              <Polyline positions={[userPoint, vendorPoint]} pathOptions={{ color: "#f97316", weight: 3, dashArray: "8 8" }} />
+            )}
+            <CircleMarker
+              center={vendorPoint}
+              radius={8}
+              pathOptions={{ color: "#16a34a", fillColor: "#4ade80", fillOpacity: 0.9, weight: 2 }}
+            >
+              <Popup>
+                <div className="space-y-1 text-sm">
+                  <p className="font-semibold">{service.name}</p>
+                  <p>{service.vendorName || "Local vendor"}</p>
+                  <p>{service.area}, {service.city}</p>
+                  <p>{service.distanceKm != null ? `${service.distanceKm.toFixed(1)} km away` : 'Distance unknown'}</p>
+                </div>
+              </Popup>
+            </CircleMarker>
+          </Fragment>
         )
       })}
     </MapContainer>

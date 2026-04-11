@@ -8,7 +8,10 @@ const nextConfig = {
    * Local dev: API_PROXY_TARGET=http://127.0.0.1:5000 in .env.local if you run only `next dev`.
    */
   async rewrites() {
-    const target = process.env.API_PROXY_TARGET?.trim().replace(/\/$/, '')
+    const target = (
+      process.env.API_PROXY_TARGET ||
+      (process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:5000' : '')
+    ).trim().replace(/\/$/, '')
     if (!target) return []
     return [
       {
