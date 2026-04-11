@@ -6,8 +6,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-# Same Docker network hostname as compose service `backend`; fixes /api/* when port maps to Next only.
-ARG API_PROXY_TARGET=http://backend:10001
+# Must match backend container_name on the Docker network (see docker-compose.yml).
+ARG API_PROXY_TARGET=http://hypercity-backend:10001
 ENV API_PROXY_TARGET=$API_PROXY_TARGET
 RUN npm run build
 
