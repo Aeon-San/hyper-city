@@ -1,5 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { addReview, getServiceReviews } from "../services/reviewService.js";
+import { uploadManyImages } from "../utils/cloudinary.js";
 
 const createReview = asyncHandler(async (req, res) => {
     const { serviceId, rating, comment } = req.body;
@@ -9,11 +10,14 @@ const createReview = asyncHandler(async (req, res) => {
         throw new Error("serviceId and rating are required");
     }
 
+    const uploadedImages = await uploadManyImages(req.files || [], "citysaathi/reviews");
+
     const review = await addReview({
         userId: req.user._id,
         serviceId,
         rating,
         comment,
+        images: uploadedImages,
     });
 
     res.status(201).json({

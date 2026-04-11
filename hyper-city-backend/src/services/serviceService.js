@@ -1,10 +1,32 @@
 import Service from "../models/Service.js";
 
+const parseCoordinatesInput = (coordinates) => {
+    if (!coordinates) {
+        return null;
+    }
+
+    if (Array.isArray(coordinates)) {
+        return coordinates;
+    }
+
+    if (typeof coordinates === "string") {
+        try {
+            const parsed = JSON.parse(coordinates);
+            return Array.isArray(parsed) ? parsed : null;
+        } catch {
+            return null;
+        }
+    }
+
+    return null;
+};
+
 const createServiceListing = async (payload, vendorId, userRole = "vendor") => {
     const {
         name,
         category,
         phone,
+        images = [],
         city,
         area,
         address,
@@ -14,7 +36,7 @@ const createServiceListing = async (payload, vendorId, userRole = "vendor") => {
         coordinates,
     } = payload;
 
-    let locationCoordinates = coordinates;
+    let locationCoordinates = parseCoordinatesInput(coordinates);
 
     if (!locationCoordinates && lat !== undefined && lng !== undefined) {
         locationCoordinates = [Number(lng), Number(lat)];
@@ -36,6 +58,7 @@ const createServiceListing = async (payload, vendorId, userRole = "vendor") => {
         name,
         category,
         phone,
+        images,
         city,
         area,
         country: country.trim() || "India",
@@ -248,6 +271,7 @@ const updateServiceListing = async (serviceId, payload, userId, userRole) => {
         name,
         category,
         phone,
+        images,
         city,
         area,
         address,
@@ -265,6 +289,9 @@ const updateServiceListing = async (serviceId, payload, userId, userRole) => {
     if (area) service.area = area;
     if (address) service.address = address;
     if (country) service.country = country.trim() || service.country;
+    if (Array.isArray(images) && images.length > 0) {
+        service.images = [...(service.images || []), ...images];
+    }
 
     if (status !== undefined && userRole === "admin") {
         const normalizedStatus = status.toString().toLowerCase();
@@ -274,7 +301,7 @@ const updateServiceListing = async (serviceId, payload, userId, userRole) => {
         service.status = normalizedStatus;
     }
 
-    let locationCoordinates = coordinates;
+    let locationCoordinates = parseCoordinatesInput(coordinates);
     if (!locationCoordinates && lat !== undefined && lng !== undefined) {
         locationCoordinates = [Number(lng), Number(lat)];
     }

@@ -22,6 +22,18 @@ const reviewSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        images: [
+            {
+                url: {
+                    type: String,
+                    trim: true,
+                },
+                publicId: {
+                    type: String,
+                    trim: true,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

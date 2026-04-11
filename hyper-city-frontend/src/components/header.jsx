@@ -16,7 +16,7 @@ const menuItems = [
     { name: 'About', href: '#about' },
 ]
 
-export const HeroHeader = () => {
+export const HeroHeader = ({ showNavLinks = true, showHomeButton = false }) => {
     const [menuState, setMenuState] = React.useState(false)
     const [scrolled, setScrolled] = React.useState(false)
     const [smartSearchOpen, setSmartSearchOpen] = React.useState(false)
@@ -76,6 +76,13 @@ export const HeroHeader = () => {
                             </button>
 
                             <div className="hidden lg:flex lg:items-center lg:gap-8">
+                                {showHomeButton ? (
+                                    <Button asChild variant="outline" size="sm" className="h-9 px-4">
+                                        <Link href="/">
+                                            <span>Back Home</span>
+                                        </Link>
+                                    </Button>
+                                ) : null}
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -88,28 +95,37 @@ export const HeroHeader = () => {
                                     onClick={() => setSmartSearchOpen(true)}>
                                     <Search className="size-5" />
                                 </Button>
-                                <ul className="flex gap-8 text-sm">
-                                    {menuItems.map((item, index) => (
-                                        <li key={index}>
-                                            <Link
-                                                href={item.href}
-                                                className={cn(
-                                                    'block duration-150',
-                                                    scrolled
-                                                        ? 'text-foreground hover:text-primary'
-                                                        : 'text-white hover:text-slate-300'
-                                                )}>
-                                                <span>{item.name}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {showNavLinks ? (
+                                    <ul className="flex gap-8 text-sm">
+                                        {menuItems.map((item, index) => (
+                                            <li key={index}>
+                                                <Link
+                                                    href={item.href}
+                                                    className={cn(
+                                                        'block duration-150',
+                                                        scrolled
+                                                            ? 'text-foreground hover:text-primary'
+                                                            : 'text-white hover:text-slate-300'
+                                                    )}>
+                                                    <span>{item.name}</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
                             </div>
                         </div>
 
                         <div
                             className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
                             <div className="lg:hidden">
+                                {showHomeButton ? (
+                                    <Button asChild variant="outline" size="sm" className="mb-4 w-full justify-center">
+                                        <Link href="/">
+                                            <span>Back Home</span>
+                                        </Link>
+                                    </Button>
+                                ) : null}
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -122,17 +138,19 @@ export const HeroHeader = () => {
                                     <Search className="size-4" />
                                     Smart Search
                                 </Button>
-                                <ul className="space-y-6 text-base">
-                                    {menuItems.map((item, index) => (
-                                        <li key={index}>
-                                            <Link
-                                                href={item.href}
-                                                className="text-foreground hover:text-primary block duration-150">
-                                                <span>{item.name}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {showNavLinks ? (
+                                    <ul className="space-y-6 text-base">
+                                        {menuItems.map((item, index) => (
+                                            <li key={index}>
+                                                <Link
+                                                    href={item.href}
+                                                    className="text-foreground hover:text-primary block duration-150">
+                                                    <span>{item.name}</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
                             </div>
                             <div
                                 className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end md:w-fit">

@@ -326,6 +326,8 @@ export default function DashboardPage({ selectedModuleId = null }) {
   })
   const [serviceCreateOpen, setServiceCreateOpen] = useState(false)
   const [serviceCreateLoading, setServiceCreateLoading] = useState(false)
+  const [serviceCreateImages, setServiceCreateImages] = useState([])
+  const [serviceEditImages, setServiceEditImages] = useState([])
   const [serviceCreateForm, setServiceCreateForm] = useState({
     name: '',
     category: serviceCategories[0],
@@ -628,6 +630,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleServiceEditStart = (service) => {
     setServiceEditId(service._id)
+    setServiceEditImages([])
     setServiceEditForm({
       name: service.name || '',
       category: service.category || categories[0]?.name || serviceCategories[0],
@@ -642,6 +645,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleServiceEditCancel = () => {
     setServiceEditId(null)
+    setServiceEditImages([])
     setServiceEditForm({
       name: '',
       category: categories[0]?.name || serviceCategories[0],
@@ -656,11 +660,18 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
   const handleServiceUpdate = async (serviceId) => {
     try {
+      const formData = new FormData()
+      Object.entries(serviceEditForm).forEach(([key, value]) => {
+        formData.append(key, value ?? '')
+      })
+      serviceEditImages.forEach((file) => {
+        formData.append('images', file)
+      })
+
       const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(serviceEditForm),
+        body: formData,
       })
 
       await parseDashboardResponse(response)
@@ -673,6 +684,7 @@ export default function DashboardPage({ selectedModuleId = null }) {
   }
 
   const resetServiceCreateForm = () => {
+    setServiceCreateImages([])
     setServiceCreateForm({
       name: '',
       category: categories[0]?.name || serviceCategories[0],
@@ -690,11 +702,18 @@ export default function DashboardPage({ selectedModuleId = null }) {
 
     setServiceCreateLoading(true)
     try {
+      const formData = new FormData()
+      Object.entries(serviceCreateForm).forEach(([key, value]) => {
+        formData.append(key, value ?? '')
+      })
+      serviceCreateImages.forEach((file) => {
+        formData.append('images', file)
+      })
+
       const response = await fetch(`${API_BASE_URL}/services`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(serviceCreateForm),
+        body: formData,
       })
 
       await parseDashboardResponse(response)
@@ -1274,7 +1293,22 @@ export default function DashboardPage({ selectedModuleId = null }) {
                       className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                       required
                     />
+                    <label className="sm:col-span-2 rounded-lg border bg-background px-3 py-2 text-sm">
+                      <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Service images (up to 6)</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(event) => setServiceCreateImages(Array.from(event.target.files || []))}
+                        className="w-full text-sm"
+                      />
+                    </label>
                   </div>
+                  {serviceCreateImages.length > 0 ? (
+                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                      {serviceCreateImages.length} image(s) selected
+                    </p>
+                  ) : null}
                   <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button type="button" variant="outline" onClick={handleServiceLocationPick}>
                       <MapPin className="mr-1.5 h-4 w-4" />
@@ -1418,6 +1452,21 @@ export default function DashboardPage({ selectedModuleId = null }) {
                                 placeholder="City"
                                 className="rounded-lg border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                               />
+                              <label className="rounded-lg border bg-background px-3 py-2 text-sm">
+                                <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Add more images</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(event) => setServiceEditImages(Array.from(event.target.files || []))}
+                                  className="w-full text-sm"
+                                />
+                              </label>
+                              {serviceEditImages.length > 0 ? (
+                                <p className="text-xs text-slate-600 dark:text-slate-300">
+                                  {serviceEditImages.length} image(s) selected for upload
+                                </p>
+                              ) : null}
                             </div>
                             <div className="flex justify-end gap-2">
                               <Button size="sm" onClick={() => handleServiceUpdate(service._id)}>
@@ -1433,6 +1482,13 @@ export default function DashboardPage({ selectedModuleId = null }) {
                             <div>
                               <p className="text-sm font-medium">{service.name}</p>
                               <p className="text-xs text-slate-600 dark:text-slate-300">{service.category}</p>
+                              {service.images?.[0]?.url ? (
+                                <img
+                                  src={service.images[0].url}
+                                  alt={service.name}
+                                  className="mt-2 h-12 w-20 rounded-md border object-cover"
+                                />
+                              ) : null}
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-300">{service.category}</p>
                             <p className="text-sm text-slate-600 dark:text-slate-300">{service.area}</p>

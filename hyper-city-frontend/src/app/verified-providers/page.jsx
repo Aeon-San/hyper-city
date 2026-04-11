@@ -591,6 +591,13 @@ const ProviderCard = ({ provider, index, onView }) => {
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-primary/5 dark:to-accent/5" />
 
       <div className="relative z-10 space-y-4">
+        {provider.imageUrl ? (
+          <img
+            src={provider.imageUrl}
+            alt={provider.name}
+            className="h-40 w-full rounded-xl border border-border object-cover"
+          />
+        ) : null}
         {/* Header with badge */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
@@ -701,6 +708,13 @@ const ProviderModal = ({
         <div className="space-y-6 p-6 sm:p-8">
           {/* Header */}
           <div className="space-y-4 border-b border-border pb-6 dark:border-border">
+            {provider.imageUrl ? (
+              <img
+                src={provider.imageUrl}
+                alt={provider.name}
+                className="h-56 w-full rounded-xl border border-border object-cover"
+              />
+            ) : null}
             <div className="flex items-start gap-4">
               <div className="flex-1">
                 <div className="mb-2 flex items-center gap-2">
@@ -982,6 +996,7 @@ export default function VerifiedProvidersPage() {
       const mappedProviders = serviceData.map((service) => ({
         _id: service._id,
         name: service.name || 'Service Provider',
+        imageUrl: service.images?.[0]?.url || '',
         vendorName: service.vendorName || 'Unknown Vendor',
         category: service.category || 'General',
         city: service.city || 'Unknown',

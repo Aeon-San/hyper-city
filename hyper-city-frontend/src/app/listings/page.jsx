@@ -214,6 +214,13 @@ function ListingsPageInner() {
                 : displayedResults.length > 0
                 ? displayedResults.map((service) => (
                     <div key={service._id} className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+                      {service.images?.[0]?.url ? (
+                        <img
+                          src={service.images[0].url}
+                          alt={service.name}
+                          className="mb-4 h-44 w-full rounded-2xl border border-border/70 object-cover"
+                        />
+                      ) : null}
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="text-xl font-bold text-slate-900">{service.name}</p>

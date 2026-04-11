@@ -212,7 +212,7 @@ export default function NearbyPage() {
 
   return (
     <>
-      <HeroHeader />
+      <HeroHeader showNavLinks={false} showHomeButton={true} />
       <main className="min-h-screen w-full bg-background px-4 pt-24 pb-10 text-foreground md:px-6 lg:px-10">
       <div className="mx-auto w-full max-w-7xl space-y-8">
         <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -373,6 +373,13 @@ export default function NearbyPage() {
                         </div>
                       ) : (
                         <>
+                          {service.images?.[0]?.url ? (
+                            <img
+                              src={service.images[0].url}
+                              alt={service.name}
+                              className="mb-4 h-44 w-full rounded-2xl border border-border/70 object-cover"
+                            />
+                          ) : null}
                           <div className="flex items-start justify-between gap-4">
                             <div>
                               <p className="text-xl font-bold text-slate-900">{service.name}</p>

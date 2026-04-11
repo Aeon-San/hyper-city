@@ -24,7 +24,7 @@ const updateServiceRatings = async (serviceId) => {
     }
 };
 
-const addReview = async ({ userId, serviceId, rating, comment }) => {
+const addReview = async ({ userId, serviceId, rating, comment, images = [] }) => {
     const service = await Service.findById(serviceId);
 
     if (!service) {
@@ -36,6 +36,7 @@ const addReview = async ({ userId, serviceId, rating, comment }) => {
         serviceId,
         rating,
         comment,
+        images,
     });
 
     await updateServiceRatings(serviceId);

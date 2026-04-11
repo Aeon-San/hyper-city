@@ -9,6 +9,7 @@ import {
     getPendingServices,
     updateServiceListing,
 } from "../services/serviceService.js";
+import { uploadManyImages } from "../utils/cloudinary.js";
 
 const getServices = asyncHandler(async (req, res) => {
     const result = await discoverServices(req.query);
@@ -62,7 +63,16 @@ const getAdminServicesController = asyncHandler(async (req, res) => {
 
 const updateService = asyncHandler(async (req, res) => {
     const serviceId = req.params.id;
-    const service = await updateServiceListing(serviceId, req.body, req.user._id, req.user.role);
+    const uploadedImages = await uploadManyImages(req.files || [], "citysaathi/services");
+    const service = await updateServiceListing(
+        serviceId,
+        {
+            ...req.body,
+            ...(uploadedImages.length ? { images: uploadedImages } : {}),
+        },
+        req.user._id,
+        req.user.role
+    );
 
     res.status(200).json({
         success: true,
@@ -82,7 +92,15 @@ const getPendingServiceRequests = asyncHandler(async (req, res) => {
 });
 
 const createService = asyncHandler(async (req, res) => {
-    const service = await createServiceListing(req.body, req.user._id, req.user.role);
+    const uploadedImages = await uploadManyImages(req.files || [], "citysaathi/services");
+    const service = await createServiceListing(
+        {
+            ...req.body,
+            images: uploadedImages,
+        },
+        req.user._id,
+        req.user.role
+    );
 
     res.status(201).json({
         success: true,
