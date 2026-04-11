@@ -10,6 +10,8 @@ services:
   backend:
     build: ./hyper-city-backend
     container_name: hypercity-backend
+    env_file:
+      - ./hyper-city-backend/.env
     expose:
       - "10001"
     networks:
